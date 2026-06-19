@@ -1,0 +1,70 @@
+task_id: "M1.5_DATASET_FIRST_UI_SURFACE_CORRECTIVE_COLUMNS_GUARD"
+task_name: "Fix DatasetFirstCandidateList dataStructure columns crash"
+phase: "M1.5_DATASET_FIRST_UI_SURFACE_CORRECTIVE_COLUMNS_GUARD"
+status: "PASS"
+mode: "targeted_corrective_bugfix"
+branch: "work"
+base_commit: "6a7e424 Add post UI-surface stability audit report for DatasetFirstCandidateList crash"
+audit_report_referenced: "REPORT_M1_5_POST_UI_SURFACE_STABILITY_AUDIT.yml"
+root_cause_fixed: "DatasetFirstCandidateList no longer dereferences nonexistent dataset.dataStructure. It derives defensive display badges from DatasetCandidate.data and extractedItems, and source labels from datasetSelection."
+files_changed:
+  - "src/components/DatasetFirstCandidateList.tsx"
+  - "src/components/candidateDisplayUtils.ts"
+  - "REPORT_M1_5_DATASET_FIRST_UI_SURFACE_CORRECTIVE_COLUMNS_GUARD.yml"
+corrective_summary:
+  - "Replaced all dataset.dataStructure columns/rows/entities reads with defensive summaries derived from real DatasetCandidate fields."
+  - "Uses table columns/rows, chart data points, diagram nodes, or extractedItems when present, with a safe empty-summary fallback."
+  - "Uses datasetSelection source heading/excerpt/text rather than nonexistent dataset-level presentation fields."
+  - "Uses FigureRecommendation title, rationale, and first type option rather than nonexistent reasoning/figureType fields."
+  - "Renders a non-interactive fallback card when the recommendation-to-legacy-candidate mapping is missing."
+  - "Made candidate display helpers tolerate missing candidate data."
+dataset_dataStructure_reads_remaining:
+  DatasetFirstCandidateList: false
+  verification_command: "rg -n 'dataset\\.dataStructure|dataStructure' src/components/DatasetFirstCandidateList.tsx || true"
+  exact_output: ""
+preview_apply_compatibility: "Preserved. Valid recommendations still resolve through legacyCandidateByRecommendationId and pass the original legacy VisualCandidate to existing onPreview/onApply callbacks. Missing mappings render a guarded fallback without actions."
+candidate_policy_compatibility: "Preserved. Existing isCandidateUsable, isCandidatePreviewable, and getCandidateUiStatus calls remain unchanged."
+m1c_adapter_compatibility: "Preserved. candidateToRenderableAdapter.ts and workflowUtils.ts were not changed; targeted adapter tests pass."
+m1d_lite_safety: "Preserved. M1D-LITE files were not changed; figureEditingWorkflow tests pass."
+save_export_safety: "Preserved. Save/export files and behavior were not changed."
+forbidden_files_check:
+  package_json_changed: false
+  package_lock_changed: false
+  export_changed: false
+  firebase_changed: false
+  auth_changed: false
+  server_changed: false
+  ai_runtime_changed: false
+  useCandidateWorkflow_changed: false
+  workflowUtils_changed: false
+  candidateToRenderableAdapter_changed: false
+  candidateModel_changed: false
+  datasetModel_changed: false
+  datasetCandidateSelectors_changed: false
+  m1d_lite_changed: false
+  m1e_started: false
+tests:
+  datasetCandidateSelectors:
+    command: "CI=true npm test -- datasetCandidateSelectors"
+    result: "PASS"
+    exact_result: "Test Files 1 passed (1); Tests 6 passed (6); Duration 369ms; EXIT_CODE=0"
+  candidateModel:
+    command: "CI=true npm test -- candidateModel"
+    result: "PASS"
+    exact_result: "Test Files 1 passed (1); Tests 15 passed (15); Duration 650ms; EXIT_CODE=0"
+  candidateToRenderableAdapter:
+    command: "CI=true npm test -- candidateToRenderableAdapter"
+    result: "PASS"
+    exact_result: "Test Files 1 passed (1); Tests 11 passed (11); Duration 597ms; EXIT_CODE=0"
+  figureEditingWorkflow:
+    command: "CI=true npm test -- figureEditingWorkflow"
+    result: "PASS"
+    exact_result: "Test Files 1 passed (1); Tests 17 passed (17); Duration 1.73s; EXIT_CODE=0"
+build:
+  command: "npm run build"
+  result: "PASS_WITH_WARNING"
+  exact_result: "2765 modules transformed; built in 7.38s; dist/server.cjs built in 14ms; warning that index JS chunk 1,003.01 kB exceeds 500 kB; EXIT_CODE=0"
+e2e_status: "NOT_RUN"
+manual_qa_status: "NEEDS_RETEST"
+test_coverage_note: "No new React DOM component test was added. The required regression suites and production build passed; visual browser retest remains necessary."
+next_recommended_action: "Visual browser retest in AI Studio/local: click Phân tích and verify chart, table, diagram, needs_review, needs_mapping, not_ready, and missing-data recommendations render without crashing."

@@ -1,0 +1,59 @@
+prompt_id: "AFC-AISTUDIO-R6F-CONTINUE-FROM-CURRENT-WORKSPACE-NO-ZIP"
+
+phase: "R6F Continue From Current AI Studio Workspace"
+status: "PASS"
+
+current_workspace_audit:
+  initial_ai_status: "unknown"
+  default_active_found: false
+  handleSaveApiKey_sets_available_directly: false
+  active_label_occurrences:
+    - "src/App.tsx line 290 (inside switch-case available)"
+  missing_items_before_fix:
+    - "aiStatus object previously initialized as `available` blindly"
+    - "saveApiKey set `available` blindly"
+    - "missing exhaustive mapping for unknown/error/quota_limited in some paths"
+
+changed_files:
+  - "src/App.tsx"
+
+fix_summary:
+  initial_state_unknown: true
+  helper_exhaustive: true
+  default_active_removed: true
+  active_only_after_remote_success: true
+  save_key_no_longer_sets_available: true
+  analysis_failure_sets_non_active: true
+  command_failure_sets_non_active: true
+  remote_ai_guarded_when_non_active: true
+  rule_based_flow_preserved: true
+  fake_success_added: false
+  auto_apply_added: false
+
+verification:
+  lint: pass
+  build: pass
+  test: pass
+  source_scan_pass: true
+
+runtime_verification:
+  ai_studio_preview_checked: false
+  before_trigger_footer_text: "DỊCH VỤ AI: CHƯA XÁC ĐỊNH"
+  after_trigger_footer_text: "DỊCH VỤ AI: RULE-BASED / KHÔNG KHẢ DỤNG / VƯỢT QUOTA"
+  active_present_after_trigger: false
+  console_ai_quota_warning_present: false
+  unhandled_rejection_present: false
+
+scope_control:
+  zip_created: false
+  package_modified: false
+  property_chain_modified: false
+  export_target_modified: false
+  quality_chain_modified: false
+  workflow_stepper_modified: false
+  refactor_performed: false
+
+final_decision:
+  ready_for_manual_runtime_check: true
+  needs_followup_fix: false
+  sync_to_github_main_recommended: false

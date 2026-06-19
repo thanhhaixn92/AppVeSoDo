@@ -1,0 +1,40 @@
+phase: "R7-FIX-INPUT-UX-1B - Section-Aware Diagram Parser & Selection"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+branch: "work"
+code_changed: true
+changed_files:
+  - "src/lib/documentParser.ts"
+  - "src/analysis/ruleAnalyzer.ts"
+  - "src/types.ts"
+  - "tests/sectionAwareDiagramSelection.test.ts"
+  - "tests/e2e/chart-workflow.spec.ts"
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: BLOCKED_BY_ENVIRONMENT
+implemented:
+  deterministic_section_parser: true
+  roman_heading_detection: true
+  semantic_section_hints: true
+  section_aware_diagram_selection: true
+  financial_table_guard_section_local: true
+  numbered_step_nodes: true
+  node_type_hints: true
+  long_label_override: true
+  explicit_connections: true
+  edge_styles: true
+  arrow_end_false: true
+  connection_labels: true
+  source_section_metadata: true
+  section_local_source_citation: true
+  simple_process_fallback_preserved: true
+  chart_table_not_regressed: true
+  visible_paste_editor_not_regressed: true
+  export_modules_untouched: true
+remaining_risks:
+  - Playwright test cannot run locally correctly to verify the actual rendering across all combinations of arrows and edge styles.
+commit_created: false
+pr_created: false

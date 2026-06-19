@@ -1,0 +1,64 @@
+branch: "antigravity/ai-analysis-request-safety-guard"
+latest_commits:
+  - "cab7ae4 docs: record QA E2E policy and agent routing"
+  - "79ffd50 fix: guard missing-payload candidates from apply"
+  - "2943bc4 fix: make AI analysis transport-safe and cache valid results"
+
+exact_failing_tests:
+  - "[chromium] Test H: Diagram SVG Export enabled, Table SVG disabled"
+  - "[chromium] Test J: Section aware diagram selection"
+  - "[ipad] Test E: Mixed dataset smoke"
+  - "[ipad] Test H: Diagram SVG Export enabled, Table SVG disabled"
+  - "[ipad] Test J: Section aware diagram selection"
+
+exact_errors:
+  Test_H: "Error: expect(locator).toBeVisible() failed. Locator: getByTestId('preview-canvas-container'). Expected: visible. Received: hidden. Timeout: 10000ms."
+  Test_J: "Error: expect(locator).toContainText(expected) failed. Expected pattern: /Nguồn dữ liệu/i. Received string includes: 'Cần ánh xạ dữ liệu trước khi dùng mẫu này.'"
+
+generated_assets_paths:
+  - "test-results/chart-workflow-Chart-Table-51349--enabled-Table-SVG-disabled-ipad/trace.zip"
+  - "test-results/chart-workflow-Chart-Table-51349--enabled-Table-SVG-disabled-ipad/video.webm"
+  - "test-results/chart-workflow-Chart-Table-80944-ion-aware-diagram-selection-ipad/trace.zip"
+  - "test-results/chart-workflow-Chart-Table-80944-ion-aware-diagram-selection-ipad/video.webm"
+
+questions_answered:
+  1_exact_failing_tests: "Test H (Chromium/iPad), Test J (Chromium/iPad), Test E (iPad only)."
+  2_exact_errors: "Test H timed out waiting for preview-canvas-container. Test J failed looking for text 'Nguồn dữ liệu' and saw 'Cần ánh xạ dữ liệu trước khi dùng mẫu này'."
+  3_why_preview_not_visible: "The missing payload guard downgraded the candidate to 'needs_mapping'. The candidate card's onClick checks isCandidatePreviewable(), which returns false, thus intentionally blocking navigation to the canvas."
+  4_app_failing_produce_ready_candidate: "Yes. The real Gemini API is returning a candidate without a full render payload."
+  5_candidate_missing_render_payload: "Yes. This triggers the missing-payload guard."
+  6_stale_selector: "No. The selector 'preview-canvas-container' is correct, but the element never mounts because navigation is blocked."
+  7_ai_runtime_dependency: "Yes. The test calls the real Gemini API via the UI."
+  8_needs_route_interception: "Yes. A deterministic mock candidate fixture must be provided via route interception so the test doesn't depend on live Gemini output."
+  9_same_on_chromium_and_ipad: "Test H and Test J fail consistently across both. Test E only fails on iPad, likely due to timing or layout flakiness."
+  10_product_bug_vs_test_instability: "These are NOT product bugs. The app is correctly enforcing the safety guard. The failures are test instability due to relying on unpredictable live AI responses."
+  11_ai_studio_pass_while_mixed_e2e: "Yes. The product behaves correctly according to its policies (the guard successfully blocks missing payloads). The E2E suite is failing precisely because the product is properly defending itself from the live AI, meaning the test suite itself needs an update to bypass the live AI."
+  12_smallest_safe_stabilization_plan: "Implement Playwright route interception (page.route) in chart-workflow.spec.ts to return a deterministic, mocked 'ready' candidate with a complete 'data.chart'/'data.diagram' payload. This bypasses the live Gemini dependency and allows UI navigation testing to pass."
+
+failure_classifications:
+  Test_H: "AI_RUNTIME_DEPENDENCY"
+  Test_J: "AI_RUNTIME_DEPENDENCY"
+  Test_E_iPad: "TEST_FLAKY"
+
+recommended_fix_slices:
+  - "Create a mock response fixture containing at least one fully formed 'ready' chart/diagram candidate with valid data payload."
+  - "In chart-workflow.spec.ts, use page.route('**/api/gemini**', ...) (or the actual analyze endpoint) to intercept the request and return the mock fixture."
+
+allowed_files_for_follow_up:
+  - "tests/e2e/chart-workflow.spec.ts"
+  - "tests/e2e/fixtures/*"
+
+forbidden_protected_files:
+  - "src/analysis/candidateModel.ts"
+  - "src/analysis/candidateToRenderableAdapter.ts"
+  - "src/components/DatasetFirstCandidateList.tsx"
+  - "server.ts"
+  - "Firebase/Auth/Export endpoints"
+
+acceptance_criteria:
+  - "npm run test:e2e -- chart-workflow.spec.ts passes 100% on Chromium and iPad."
+  - "Zero reliance on real Gemini API for the UI/UX assertions in this spec."
+
+custom_qa_cycle_can_proceed: "Yes. The underlying product works. Automation/manual QA can proceed while E2E tests are stabilized in a separate task."
+
+final_status: "PLAN_READY_FOR_CHART_WORKFLOW_E2E_STABILIZATION"

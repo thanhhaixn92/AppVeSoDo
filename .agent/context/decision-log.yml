@@ -1,0 +1,22 @@
+decisions:
+  - id: "ADR-001"
+    title: "Firebase deferred until candidate schema stabilizes"
+    status: "accepted"
+    context: "Candidate schema and workflow were unstable before M1A."
+    decision: "Do not integrate Firebase until after M1A/M1B/M1C."
+    consequences:
+      - "Use localStorage/workspace draft temporarily."
+
+  - id: "ADR-002"
+    title: "Candidate policy centralized in candidateModel.ts"
+    status: "accepted"
+    context: "Policy duplication caused preview/apply bypass."
+    decision: "All candidate usability/preview/apply/stable ID/dedupe policy lives in candidateModel.ts."
+    consequences:
+      - "App.tsx may orchestrate but must not redefine policy."
+
+  - id: "ADR-003"
+    title: "Document workflow extracted before candidate workflow"
+    status: "accepted"
+    context: "Raw preservation is foundational for AI-first long-document analysis."
+    decision: "Extract useDocumentWorkflow as M1B-1 before useCandidateWorkflow."

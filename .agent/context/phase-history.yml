@@ -1,0 +1,108 @@
+phases:
+  - id: "R7-M1A"
+    status: "AUDIT_PASS"
+    summary: "Centralized candidate model, status policy, deterministic IDs, dedupe, metadata preservation."
+    key_files:
+      - "src/analysis/candidateModel.ts"
+      - "src/analysis/candidateNormalizer.ts"
+      - "src/lib/workflowUtils.ts"
+      - "tests/candidateModel.test.ts"
+    lessons:
+      - "Policy bypass was found before corrective."
+      - "needs_mapping must be blocked at UI, handler, and builder."
+
+  - id: "R7-M1B-1"
+    status: "AUDIT_PASS"
+    summary: "Extracted useDocumentWorkflow and fixed raw preservation boundaries."
+    key_files:
+      - "src/hooks/useDocumentWorkflow.ts"
+      - "src/components/RichDocumentEditor.tsx"
+      - "src/App.tsx"
+      - "tests/documentWorkflow.test.ts"
+    final_commit: "3960ca5"
+    lessons:
+      - "Initial extraction failed because RichDocumentEditor still owned paste/import."
+      - "Import must not create raw=imported_only with blocks=old+imported."
+
+  - id: "HARNESS-v1.1.1"
+    status: "GOVERNANCE_PRODUCT_PROFILE_UPDATE"
+    summary: >-
+      Clarified that SO DO APP / Academic Figure Creator is not only a
+      long-document analysis assistant. Candidate generation is one stage in
+      the product pipeline, which continues to renderable figure model,
+      template rendering, properties/AI-chat editing, preview, save, and export.
+    scope_note: >-
+      This governance update does not modify source code and does not expand
+      R7-M1B-2 scope.
+
+  - id: "R7-M1B-2"
+    status: "AUDIT_PASS"
+    summary: "Extracted candidate workflow into useCandidateWorkflow."
+    key_files:
+      - "src/App.tsx"
+      - "src/hooks/useCandidateWorkflow.ts"
+    lessons:
+      - "E2E remains blocked by environment."
+      - "setPreviewFigure exposed from useCandidateWorkflow should be watched in M1C/UI phase."
+
+  - id: "M1C"
+    status: "AUDIT_PASS"
+    summary: "Introduced and hardened the candidate-to-renderable adapter boundary."
+    key_files:
+      - "src/analysis/candidateToRenderableAdapter.ts"
+      - "src/types.ts"
+      - "src/lib/workflowUtils.ts"
+      - "tests/candidateToRenderableAdapter.test.ts"
+    final_commit: "94ed25a"
+    validation:
+      unit_tests: "114 passed"
+      e2e: "BLOCKED_BY_ENVIRONMENT: Playwright CDN HTTP 403"
+    lessons:
+      - "Adapter runtime validation must require the payload matching the declared figure type."
+      - "RenderableFigurePayload remains optional at type level; adapter runtime validation enforces matching payload."
+
+  - id: "M1D-LITE"
+    status: "AUDIT_PASS"
+    summary: "Implemented typed reversible figure editing workflow and minimal properties panel."
+    key_files:
+      - "src/hooks/useFigureEditingWorkflow.ts"
+      - "src/components/M1DLitePropertyPanel.tsx"
+      - "src/App.tsx"
+      - "tests/figureEditingWorkflow.test.ts"
+    final_commit: "5845cd1"
+    delivered:
+      - "deep-cloned editable draft"
+      - "title editing"
+      - "chart point label/value editing"
+      - "table cell editing"
+      - "diagram node label editing"
+      - "validated apply/cancel behavior"
+    validation:
+      unit_tests: "128 passed"
+      e2e: "BLOCKED_BY_ENVIRONMENT: Playwright browser download failed"
+    preserved:
+      - "renderer/export DOM contract"
+      - "candidate policy and M1C adapter"
+      - "document workflow"
+
+  - id: "HUMAN_PRODUCT_SURFACE_CHECKPOINT_RESOLUTION"
+    status: "COMPLETE"
+    summary: "Recorded human decisions on product surface, dataset-first priority, and M1D_LITE."
+    decisions:
+      - "ACCEPT_M1D_LITE_AS_TEMPORARY_PRODUCT_SURFACE"
+      - "CONFIRM_DATASET_FIRST_M1_5_BEFORE_M1E"
+      - "PRIORITY_MODEL_CLEANUP_FIRST_WITH_ONLY_MODEL_INDEPENDENT_CSS_POLISH_ALLOWED"
+
+next_phase:
+  id: "RISK-M1D-006_CORRECTIVE"
+  name: "Corrective: Figure update conflicts"
+  status: "REQUIRED"
+  scope: "Fix same-identity external figure updates not refreshing existing drafts."
+
+future_roadmap:
+  - id: "MODEL_INDEPENDENT_CSS_POLISH"
+  - id: "M1.5_DATASET_FIRST_MODEL_MIGRATION"
+  - id: "RENDERING_PIPELINE_POLISH_AFTER_M1.5"
+  - id: "APP_TSX_DECOMPOSITION"
+  - id: "M1E_AI_CHAT_COMMAND_WORKFLOW"
+  - id: "M2_REAL_AI_PIPELINE_PLANNING"

@@ -1,0 +1,34 @@
+phase: "R7-FIX-INPUT-UX-1D - Manual QA Parser Preservation & Candidate Readiness RCA"
+status: "AUDIT_COMPLETE"
+mode: "audit-only"
+code_changed: false
+branch_policy: "sửa tiếp trên branch hiện tại"
+commands:
+  lint: "PASS"
+  unit_test: "PASS"
+  build: "PASS"
+  e2e: "BLOCKED_BY_ENVIRONMENT"
+root_cause:
+  primary: "parseTextToBlocks & blocksToText flattening destroys raw input formats. Specifically, blocksToText joins block layers with `\n\n` preventing loose tables extraction, and replaces specific list indicators (`1.`, `*`) indiscriminately with `-`, defeating regex checks."
+  secondary: "The UI ready count header incorrectly displays `visualCandidates.length` (ALL parsed components), while the subheader accurately segments those components using `usableCandidates.length`. Their lengths diverge when components present warnings."
+manual_qa_result:
+  sample_loaded: true
+  table_candidate_ready: false
+  chart_candidate_ready: false
+  diagram_candidate_ready: false
+  ready_count_consistent: false
+findings:
+  data_path: "RichDocumentEditor paste -> parseTextToBlocks -> block generation -> blocksToText string recreation -> setDocumentText -> runRuleAnalysis"
+  parser_preservation: "Poor. `blocksToText` fails to accurately reproduce original formatting. Loose tables separated by single newlines become double-spaced due to array joining, and bullet prefixes are destructively normalized to `- `."
+  section_parser: "The section grouping works properly but operates upon the destructive output of `blocksToText`, yielding parsed sections with flattened content structure."
+  diagram_factory: "Fails because regex steps look for numbered prefixes `^\\s*\\d+\\.\\s+` and metadata stars `*`, but receives sanitized dashes `-` spaced indiscriminately by `\n\n`."
+  table_factory: "Tabular formatting loses structural row continuity when single line-feeds are converted into double `\n\n` spacer boundaries by the default paragraph processing."
+  chart_factory: "Expected inline bullet list structures are disrupted through similar markdown normalization behaviors."
+  ui_ready_count: "The component Header logic hardcodes ``visualCandidates.length > 0 ? `${visualCandidates.length} đề xuất sẵn sàng` : 'Chưa có gợi ý'`` failing to evaluate `usableCandidates.length`."
+recommended_fix_plan:
+  phase_1d_scope: "Update `parseTextToBlocks` / `DocumentBlock` to record original raw prefixes (e.g., `prefix: '1.'`) and refine `blocksToText` to restore accurate newline spacing for paragraph/lists."
+  allowed_files: "src/lib/documentParser.ts, src/types.ts, src/App.tsx"
+  tests_to_add: "Add parser idempotence tests ensuring `blocksToText(parseTextToBlocks(rawText)) === rawText` handles mixed consecutive paragraphs, numeric bullets, asterisk characters, and raw text spacings."
+  acceptance_criteria: "Table candidates parse cleanly from loose datasets; Diagram engine effectively traces numeric prefixes and starred properties. Top ready indicator correctly reflects functional capabilities."
+do_not_touch: "Export mechanisms, underlying renderer implementations."
+remaining_risks: "Parser adjustments to preserve raw tokens risk impacting subsequent RichEditor view rendering behavior if it relies entirely on heavily sanitized components."

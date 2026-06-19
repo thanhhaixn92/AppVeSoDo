@@ -1,0 +1,51 @@
+task_to_files:
+  raw_preservation:
+    must_read:
+      - "src/hooks/useDocumentWorkflow.ts"
+      - "src/components/RichDocumentEditor.tsx"
+      - "tests/documentWorkflow.test.ts"
+    optional:
+      - "src/lib/workspaceDraft.ts"
+      - "src/App.tsx"
+
+  candidate_policy:
+    must_read:
+      - "src/analysis/candidateModel.ts"
+      - "src/analysis/candidateNormalizer.ts"
+      - "src/lib/workflowUtils.ts"
+      - "tests/candidateModel.test.ts"
+
+  m1b2_candidate_workflow:
+    must_read:
+      - "src/App.tsx"
+      - "src/analysis/candidateModel.ts"
+      - "src/analysis/candidateNormalizer.ts"
+      - "src/lib/workflowUtils.ts"
+      - "tests/candidateModel.test.ts"
+    goal:
+      - "Extract useCandidateWorkflow only"
+    forbidden_without_scope:
+      - "server.ts"
+      - "export code"
+      - "Firebase"
+      - "renderer DOM wrappers"
+
+  m1c_adapter:
+    must_read:
+      - "src/analysis/candidateToRenderableAdapter.ts"
+      - "src/types.ts"
+      - "src/lib/workflowUtils.ts"
+    goal:
+      - "Convert Candidate to RenderableFigurePayload"
+
+  m1d_lite_figure_editing:
+    must_read:
+      - "src/hooks/useFigureEditingWorkflow.ts"
+      - "src/components/M1DLitePropertyPanel.tsx"
+      - "src/App.tsx"
+    goal:
+      - "Provide reversible UI for dataset, table, chart editing"
+
+  export_or_renderer:
+    status: "FROZEN_UNTIL_M1C (Boundary established, M1C complete)"
+    require_explicit_user_approval: true

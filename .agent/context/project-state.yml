@@ -1,0 +1,136 @@
+project_name: "SO DO APP / Academic Figure Creator"
+direction: "Academic Figure Creator with AI-assisted data understanding, candidate generation, template-based rendering, manual properties editing, AI chat editing, preview, save, and export"
+governance_version: "Harness v1.1.1"
+governance_update: "COMPLETE"
+product_profile_update: "COMPLETE"
+current_mode: "STABLE_AFTER_FULL_E2E_AND_AI_STUDIO_SMOKE"
+latest_verified_commit: "04c890c"
+last_updated: "2026-06-15"
+
+product_goal:
+  summary: >-
+    SO DO APP is an Academic Figure Creator. AI-assisted data/document
+    understanding and candidate generation are early stages of the product
+    pipeline, not the final product output.
+  pipeline:
+    - "input data/document"
+    - "preserve raw input"
+    - "generate visual candidates"
+    - "select candidate"
+    - "convert to renderable figure model"
+    - "render with academic/professional templates"
+    - "edit through properties panel or AI chat"
+    - "preview"
+    - "save"
+    - "export"
+
+human_decisions_recorded:
+  - "ACCEPT_M1D_LITE_AS_TEMPORARY_PRODUCT_SURFACE"
+  - "CONFIRM_DATASET_FIRST_M1_5_BEFORE_M1E"
+  - "PRIORITY_MODEL_CLEANUP_FIRST_WITH_ONLY_MODEL_INDEPENDENT_CSS_POLISH_ALLOWED"
+
+current_checkpoint:
+  m1a: "AUDIT_PASS"
+  m1b1: "AUDIT_PASS"
+  m1b2: "AUDIT_PASS"
+  m1c: "AUDIT_PASS"
+  m1d_lite: "AUDIT_PASS"
+  candidate_to_canvas_qa: "PASS"
+  chart_workflow_e2e_stabilization: "PASS"
+  local_full_e2e: "PASS"
+  ai_studio_final_smoke: "PASS"
+  stable_zip: "so-do-app-full-e2e-pass-04c890c.zip"
+
+roadmap:
+  0_HUMAN_PRODUCT_SURFACE_CHECKPOINT_RESOLUTION:
+    status: "DONE"
+  1_INLINE_GOVERNANCE_UPDATE:
+    status: "DONE"
+  2_RISK_M1D_006_CORRECTIVE:
+    status: "DONE"
+  3_MODEL_INDEPENDENT_CSS_POLISH:
+    status: "PLANNED"
+  4_M1.5_DATASET_FIRST_MODEL_MIGRATION:
+    status: "PLANNED"
+  5_RENDERING_PIPELINE_POLISH_AFTER_M1.5:
+    status: "PLANNED"
+  6_APP_TSX_DECOMPOSITION:
+    status: "PLANNED"
+  7_M1E_AI_CHAT_COMMAND_WORKFLOW:
+    status: "NOT_STARTED"
+  8_M2_REAL_AI_PIPELINE_PLANNING:
+    status: "DEFERRED"
+  9_QA_CYCLE_HARNESS_DESIGN:
+    status: "IN_PROGRESS"
+    note: "/qa-cycle is being designed as docs-only harness support, not product milestone expansion."
+
+single_source_of_truth:
+  current_state: ".agent/context/project-state.yml"
+  product_profile: ".agent/project/product-profile.md"
+  task_scope: ".agent/tasks/<task-id>.yml"
+  encountered_issues: ".agent/context/issue-memory.yml"
+  root_cause_patterns: ".agent/context/root-cause-library.yml"
+  architecture_decisions: ".agent/context/decision-log.yml"
+  protected_areas: ".agent/project/protected-areas.md"
+  canonical_prompt_policy: ".agent/prompts/"
+  file_ownership: ".agent/context/file-ownership.yml"
+  temporary_file_locks: ".agent/context/file-locks.yml"
+
+next_allowed_tasks:
+  - "MODEL_INDEPENDENT_CSS_POLISH"
+  - "M1.5_DATASET_FIRST_MODEL_MIGRATION"
+
+not_allowed_without_user:
+  - "M1.5 Dataset-first model migration"
+  - "M1E AI chat editing"
+  - "M2 real AI"
+  - "M3 Firebase"
+  - "M4 export hardening"
+  - "export refactor"
+  - "server boundary changes"
+  - "dependency/package changes"
+
+qa_policy_update_2026_06:
+  status: active
+  rationale: >
+    Static audit and unit tests were not sufficient to catch user-facing UI/candidate/canvas issues.
+    Playwright E2E reproduced a missing-payload candidate apply bug that manual screenshot review and unit tests did not fully prevent.
+  tool_routing:
+    chatgpt_project: "coordination, audit, prompt writing, decision synthesis"
+    codex: "audit-only, implementation planning, report-only PRs"
+    antigravity: "local code implementation, Playwright E2E, browser verification, fix-retest cycles"
+    google_ai_studio: "ZIP import, preview smoke, Gemini prompt/runtime checks, UI comparison"
+  pass_rule:
+    user_facing_flow: "requires Playwright E2E or browser verification before PASS"
+    static_unit_only: "may be PARTIAL_PASS but not final PASS for UI/candidate/canvas flows"
+  e2e_reporting_rule:
+    targeted_e2e: "required for the affected user flow"
+    full_e2e: "run when feasible; if mixed/failing, classify each failure honestly"
+    blocked_environment: "report exact command/error; do not claim E2E pass"
+  required_evidence:
+    - "commands run"
+    - "build result"
+    - "unit test result"
+    - "targeted E2E result when relevant"
+    - "full E2E result when feasible"
+    - "screenshots/videos/traces for UI bugs when available"
+  known_current_e2e_baseline:
+    missing_payload_guard_targeted_e2e: "PASS on chromium and ipad"
+    full_e2e: "PASS in latest run: 17 passed, 5 skipped"
+    full_e2e_notes: "Chart workflow E2E stabilized. Teardown timeouts resolved via deterministic split and serial execution. Live AI diagram specs appropriately skipped."
+    ai_studio_smoke: "PASS (app launch, transport, cache, quota, missing payload guard verified. Preview/apply not available due to no ready candidate)."
+
+main_branch_sync_policy_2026_06:
+  status: active
+  rationale: "Ensure all changes merged to main have been strictly verified in the AI Studio environment via ZIP import. PRs bypassing this can introduce transport/proxy breaks."
+  ownership: "GitHub `main` is exclusively AI Studio sync-owned."
+  antigravity_rules:
+    - "Must not merge PRs directly to `main`."
+    - "Must not push directly to `main`."
+    - "Branches and PRs are for local implementation, backup, code review, and reference only."
+    - "Codex review is an audit-only step and does not grant merge authority."
+  safe_workflow:
+    1: "Antigravity implements and tests locally."
+    2: "Antigravity creates ZIP."
+    3: "AI Studio imports ZIP, performs smoke tests, and syncs to `main`."
+    4: "Antigravity fetches `main` afterward to synchronize."

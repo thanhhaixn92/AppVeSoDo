@@ -1,0 +1,38 @@
+phase: "R7-FIX-4F - Enable Diagram SVG Export Gate"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+branch: "work"
+code_changed: true
+changed_files:
+  - "src/App.tsx"
+  - "src/lib/workflowUtils.ts"
+  - "tests/exportFigureSvg.test.ts"
+  - "tests/e2e/chart-workflow.spec.ts"
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: BLOCKED_BY_ENVIRONMENT
+implemented:
+  diagram_svg_enabled: true
+  chart_svg_still_enabled: true
+  table_svg_disabled: true
+  tikz_latex_disabled: true
+  diagram_strict_selector: true
+  diagram_uses_resolved_metadata: true
+  diagram_uses_academic_svg_wrapper: true
+  no_foreign_object: true
+  native_text_tspan: true
+  scoped_marker_ids: true
+  arrow_end_respected: true
+  line_styles_preserved: true
+  connection_labels: true
+  source_conditional: true
+  no_placeholder_source: true
+  pdf_png_latex_untouched: true
+  server_ai_untouched: true
+remaining_risks:
+  - "E2E is blocked so manual QA is needed to verify SVG file contents with external viewer."
+commit_created: false
+pr_created: false

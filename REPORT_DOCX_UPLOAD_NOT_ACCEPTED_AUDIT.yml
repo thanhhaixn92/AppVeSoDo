@@ -1,0 +1,23 @@
+phase: "DOCX_UPLOAD_NOT_ACCEPTED_AUDIT"
+status: "AUDIT_COMPLETE"
+code_changed: false
+
+findings:
+  - "The file input in RichDocumentEditor.tsx explicitly restricts uploads to '.txt,.md,.rtf' using the 'accept' attribute."
+  - "The handleUploadedFile function uses FileReader.readAsText(), which only supports plain-text or utf-8 parseable files."
+  - "Word documents (.docx) are binary archives (ZIP-based). readAsText would yield corrupt characters if a .docx file were bypassed into it."
+  - "No .docx or PDF parsing libraries (e.g., mammoth, pdf.js) exist in package.json."
+  - "Because there is no parser, the UI filter appropriately prevents uploading files that would currently fail to parse."
+
+root_cause: "Lack of a .docx parsing capability (e.g., mammoth library) in the repository; the UI correctly blocks .docx files using the `accept` attribute to prevent binary corruption on readAsText."
+
+current_supported_formats:
+  - ".txt"
+  - ".md"
+  - ".rtf (handled as plain text via readAsText)"
+
+minimal_corrective_plan:
+  - "1. Install a `.docx` parsing library (e.g., `mammoth`) under dependencies."
+  - "2. Update RichDocumentEditor.tsx `accept` attribute to include `application/vnd.openxmlformats-officedocument.wordprocessingml.document, .docx`."
+  - "3. Update handleUploadedFile to inspect file type. If `.docx`, use FileReader.readAsArrayBuffer() and pass it to mammoth.extractRawText() to retrieve text content."
+  - "4. Pass the extracted text to onImportDocument() just like plain-text files."

@@ -1,0 +1,135 @@
+id: "R7-M1B-2"
+title: "Extract useCandidateWorkflow"
+status: "DONE"
+source_of_truth: true
+
+product_context:
+  product_goal_updated: true
+  summary: >-
+    SO DO APP is an Academic Figure Creator. Candidate generation is one
+    stage in the pipeline. The full product flow continues from candidate
+    selection to renderable figure model, template rendering, manual
+    properties editing, AI chat editing, preview, save, and export.
+
+scope_clarification:
+  note: >-
+    Product goal clarification does not expand R7-M1B-2 scope. R7-M1B-2
+    remains limited to extracting candidate workflow from App.tsx into
+    useCandidateWorkflow.
+
+non_goals:
+  - "Build template rendering engine"
+  - "Build candidate-to-renderable adapter"
+  - "Build figure properties panel"
+  - "Build dataset editor"
+  - "Build AI chat editing workflow"
+  - "Modify export behavior"
+  - "Modify candidate policy behavior"
+  - "Modify document workflow"
+  - "Modify Firebase/auth/server/dependencies"
+
+objective: >-
+  Extract candidate workflow state and handlers from src/App.tsx into
+  src/hooks/useCandidateWorkflow.ts while preserving M1A candidate policy and
+  M1B-1 document workflow boundaries.
+
+mode:
+  required_flow:
+    - "IMPLEMENT"
+    - "SELF-CHECK"
+    - "AUDIT-ONLY"
+    - "CORRECTIVE if audit fails"
+    - "RE-AUDIT"
+    - "HUMAN CHECKPOINT"
+
+must_read:
+  - "AGENTS.md"
+  - ".agent/context/project-state.yml"
+  - ".agent/context/codebase-map.yml"
+  - ".agent/context/module-index.yml"
+  - ".agent/context/issue-memory.yml"
+  - ".agent/context/root-cause-library.yml"
+  - ".agent/context/file-ownership.yml"
+  - ".agent/context/milestone-acceptance.yml"
+  - ".agent/project/protected-areas.md"
+  - ".agent/project/commands.md"
+  - "src/App.tsx"
+  - "src/analysis/candidateModel.ts"
+  - "src/analysis/candidateNormalizer.ts"
+  - "src/lib/workflowUtils.ts"
+  - "tests/candidateModel.test.ts"
+
+allowed_files:
+  - "src/App.tsx"
+  - "src/hooks/useCandidateWorkflow.ts"
+  - "tests/candidateModel.test.ts"
+
+allowed_if_strictly_needed:
+  - "src/analysis/candidateNormalizer.ts"
+  - "src/lib/workflowUtils.ts"
+
+forbidden_files_or_domains:
+  - "export DOM contract"
+  - "renderer DOM wrappers"
+  - "data-export-target"
+  - "SVG/PDF/PNG export behavior"
+  - "Firebase"
+  - "Auth/user/permission"
+  - "real AI/Gemini runtime"
+  - "server boundary"
+  - "package dependencies"
+  - "M1C/M1D/M1E/M2/M3/M4 implementation"
+  - "template rendering engine"
+  - "properties panel"
+  - "AI chat editing"
+  - "persistence changes"
+
+must_preserve:
+  - "Candidate policy remains centralized in src/analysis/candidateModel.ts."
+  - "No duplicated usability/preview/apply policy in App.tsx or useCandidateWorkflow."
+  - "Existing candidate IDs, metadata preservation, dedupe behavior, and status policy remain unchanged."
+  - "Document workflow boundaries from M1B-1 remain unchanged."
+  - "Export and renderer DOM contracts remain unchanged."
+  - "No real AI call, Firebase integration, server change, auth change, or dependency change."
+
+implementation_guidance:
+  - "Make App.tsx delegate candidate workflow state/handlers to useCandidateWorkflow."
+  - "Keep App.tsx as orchestration shell, not policy owner."
+  - "Use public helpers from candidateModel instead of status-condition shortcuts."
+  - "Prefer small extraction over broad rewrite."
+  - "Do not refactor unrelated analysis/canvas/export concerns in this task."
+  - "Do not implement template engine, properties panel, AI chat editing, persistence, or export changes in this task."
+
+acceptance_criteria:
+  - "src/hooks/useCandidateWorkflow.ts exists and owns candidate workflow state/handlers."
+  - "src/App.tsx no longer directly owns extracted candidate workflow internals beyond orchestration wiring."
+  - "candidateModel policy remains unchanged unless explicitly approved."
+  - "No condition-based bypass such as condition !== 'not_ready' is introduced."
+  - "Targeted candidate tests pass or any failure is explained with exact output."
+  - "lint, build, unit tests are attempted and reported."
+  - "E2E is attempted when possible and classified honestly."
+  - "Final report follows .agent/core/universal-report-format.md."
+
+required_commands:
+  targeted_test: "npm test -- candidateModel"
+  lint: "npm run lint"
+  build: "npm run build"
+  unit_test: "npm test"
+  e2e_install: "npx playwright install --with-deps"
+  e2e: "npm run test:e2e -- --project=chromium"
+
+stop_conditions:
+  - "Candidate policy must be changed to complete extraction."
+  - "Export/renderer DOM changes appear necessary."
+  - "Firebase/auth/server/dependency changes appear necessary."
+  - "Root cause of failing tests is unclear."
+  - "Tests still fail after 3 repair loops."
+  - "E2E is blocked by environment."
+  - "Product or architecture decision is required."
+
+audit_focus:
+  - "Search for duplicated candidate policy outside candidateModel.ts."
+  - "Verify App.tsx did not accumulate new domain policy."
+  - "Verify useCandidateWorkflow is not a thin wrapper with logic still in App.tsx."
+  - "Verify no protected domains changed."
+  - "Verify report and E2E classification are honest."

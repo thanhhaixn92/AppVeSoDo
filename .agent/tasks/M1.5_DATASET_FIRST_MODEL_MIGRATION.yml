@@ -1,0 +1,52 @@
+task_id: "M1.5_DATASET_FIRST_MODEL_MIGRATION"
+task_type: "product_architecture_migration"
+status: "READY_FOR_NARROW_SLICE_PLANNING"
+
+purpose: "Move toward dataset-first model architecture while preserving existing candidate generation, selection, adapter, renderer, export, and missing-payload safety behavior."
+
+non_goals:
+  - "no export hardening"
+  - "no renderer rewrite"
+  - "no Firebase/Auth/save work"
+  - "no real AI/Gemini runtime change"
+  - "no M1D properties panel work"
+  - "no M1E chat command workflow"
+  - "no visual redesign"
+  - "no package/dependency change"
+
+protected_scope:
+  - "export DOM contract"
+  - "data-export-target attributes"
+  - "renderer wrappers/FigureRenderer.tsx unless a later explicit slice allows"
+  - "Firebase/Auth/save/server/package files"
+  - "real AI/Gemini runtime"
+  - "document/raw preservation boundary"
+
+allowed_scope:
+  note: "Exact allowed files are slice-dependent. Below are conservative allowed areas for narrow slices only."
+  files:
+    - "src/types.ts"
+    - "src/analysis/candidateModel.ts"
+    - "src/analysis/candidateToRenderableAdapter.ts"
+    - "src/hooks/useCandidateWorkflow.ts"
+    - "existing candidate tests / adapter tests / missing-payload tests"
+
+migration_principles:
+  - "dataset-first is not just UI naming"
+  - "preserve raw input"
+  - "candidate remains input to renderable figure model, not final product"
+  - "preserve M1C adapter boundary"
+  - "preserve missing-payload guard"
+  - "preserve existing tests before expanding model"
+  - "no big-bang migration"
+
+recommended_first_implementation_slice: "Introduce or normalize dataset-first type aliases / metadata fields behind existing compatibility boundary, without changing runtime behavior. The first slice must avoid App.tsx unless absolutely necessary."
+
+acceptance_criteria:
+  - "build passes"
+  - "unit tests pass"
+  - "missing-payload guard E2E passes if candidate readiness/apply surfaces touched"
+  - "chart workflow E2E passes if adapter/rendering surfaces touched"
+  - "no protected files touched"
+  - "no export DOM/data-export-target changes"
+  - "final report follows universal report format"

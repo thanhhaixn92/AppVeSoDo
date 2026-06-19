@@ -1,0 +1,30 @@
+# File locks are temporary coordination state for multi-agent work.
+# Do not treat recommended_locks as active locks.
+# Active locks should include expires_at and should be removed after the task/checkpoint.
+
+active_locks: []
+
+recommended_locks_when_starting_R7_M1B_2:
+  - path: "src/App.tsx"
+    owner_agent: "implementation-agent"
+    task_id: "R7-M1B-2"
+    lock_mode: "write"
+    reason: "Candidate workflow extraction touches App.tsx orchestration."
+
+  - path: "src/hooks/useCandidateWorkflow.ts"
+    owner_agent: "implementation-agent"
+    task_id: "R7-M1B-2"
+    lock_mode: "write"
+    reason: "Target hook for extraction."
+
+  - path: "tests/candidateModel.test.ts"
+    owner_agent: "implementation-agent"
+    task_id: "R7-M1B-2"
+    lock_mode: "write-if-needed"
+    reason: "May need regression coverage, but tests must not be weakened."
+
+lock_rules:
+  - "Do not commit stale active locks."
+  - "Every active lock must include path, owner_agent, task_id, lock_mode, reason, created_at, and expires_at."
+  - "Audit-only agents must not create write locks."
+  - "Multiple implementation agents must not edit overlapping files without explicit human coordination."

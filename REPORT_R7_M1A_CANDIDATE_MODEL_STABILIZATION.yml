@@ -1,0 +1,30 @@
+phase: "R7-M1A-CANDIDATE-MODEL-STABILIZATION"
+status: "PASS"
+code_changed: true
+branch: "work"
+changed_files:
+  - "src/analysis/candidateModel.ts"
+  - "src/App.tsx"
+  - "src/analysis/aiAnalysisAdapter.ts"
+  - "tests/candidateModel.test.ts"
+commands:
+  lint: "PASS"
+  unit_test: "PASS - 11 passed, 92 tests total"
+  build: "PASS"
+  e2e: "BLOCKED_BY_ENVIRONMENT — Playwright Chromium executable is missing"
+fixed:
+  candidate_model_boundary: true
+  status_policy_centralized: true
+  needs_mapping_not_usable: true
+  metadata_preservation_tests: true
+  deterministic_candidate_ids: true
+  aiAnalysisAdapter_lint_fixed: true
+not_changed:
+  firebase: true
+  real_ai_call: true
+  export_dom_contract: true
+  renderer_dom_contract: true
+risks_remaining:
+  - "App.tsx vẫn chứa nhiều state logic, cần tách hooks ở M1B."
+  - "Trộn candidates vẫn thông qua ép kiểu (type casting) tạm vì RankedVisualCandidate từ rule engine cũ chưa loại bỏ."
+next_recommended_phase: "M1B — Extract workflow hooks"

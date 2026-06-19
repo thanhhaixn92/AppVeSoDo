@@ -1,0 +1,40 @@
+phase: "M1C-DEFINITION-CORRECTIVE"
+status: "PASS"
+mode: "governance_corrective"
+code_changed: false
+
+files_updated:
+  - "/AGENTS.md"
+  - "/.agent/context/project-state.yml"
+  - "/.agent/context/phase-history.yml"
+  - "/.agent/context/handoff-log.md"
+  - "/.agent/context/milestone-acceptance.yml"
+  - "/.agent/context/file-ownership.yml"
+
+files_created:
+  - "/.agent/tasks/M1C.yml"
+  - "/.agent/prompts/milestones/M1C.md"
+  - "/REPORT_M1C_DEFINITION_CORRECTIVE.yml"
+
+source_files_changed: false
+
+governance_state:
+  m1a: "AUDIT_PASS"
+  m1b1: "AUDIT_PASS"
+  m1b2: "AUDIT_PASS"
+  m1c: "READY_FOR_IMPLEMENTATION"
+
+m1c_task_file:
+  created: true
+  path: ".agent/tasks/M1C.yml"
+
+m1c_prompt_file:
+  created: true
+  path: ".agent/prompts/milestones/M1C.md"
+
+validation:
+  yaml_validation: "PASS"
+  source_change_check: "PASS"
+
+next_recommended_task:
+  "M1C-IMPLEMENT-CANDIDATE-TO-RENDERABLE-ADAPTER"

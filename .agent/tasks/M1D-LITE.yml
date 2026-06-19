@@ -1,0 +1,90 @@
+id: "M1D-LITE"
+title: "Typed reversible figure editing workflow and minimal properties panel"
+status: "AUDIT_PASS"
+mode: "checkpoint_complete"
+
+checkpoint:
+  final_commit: "5845cd1"
+  audit_result: "AUDIT_PASS"
+  unit_tests: "128 passed"
+  e2e: "BLOCKED_BY_ENVIRONMENT: Playwright browser download failed"
+  next_gate: "HUMAN_PRODUCT_SURFACE_CHECKPOINT_BEFORE_M1E"
+
+goal: >-
+  active PreviewFigure / SavedFigure
+  -> deep-cloned editable draft
+  -> validate
+  -> apply / cancel
+  -> updated preview or saved figure
+
+allowed_files:
+  - "src/hooks/useFigureEditingWorkflow.ts"
+  - "src/components/M1DLitePropertyPanel.tsx"
+  - "src/components/PropertyPanel.tsx only if narrowly adapting the existing panel"
+  - "src/types.ts only for narrowly scoped edit-draft/action types if necessary"
+  - "src/App.tsx only for minimal orchestration wiring"
+  - "tests/figureEditingWorkflow.test.ts"
+  - "tests/propertyPanel.m1dLite.test.tsx only if current test environment supports it"
+
+forbidden_files:
+  - "src/components/FigureRenderer.tsx"
+  - "src/hooks/useCandidateWorkflow.ts"
+  - "src/analysis/candidateToRenderableAdapter.ts"
+  - "src/analysis/candidateModel.ts"
+  - "src/hooks/useDocumentWorkflow.ts"
+  - "src/components/RichDocumentEditor.tsx"
+  - "**/*export*"
+  - "server.ts"
+  - "package.json"
+  - "package-lock.json"
+  - "firebase/**"
+  - "auth/**"
+  - "src/components/CommandEditor.tsx"
+  - "AI chat workflow"
+  - "template engine"
+
+requirements:
+  - "create a deep-cloned draft from the active PreviewFigure or SavedFigure"
+  - "title edit works for preview and saved figures"
+  - "existing chart point label/value edit works without changing chart structure"
+  - "existing table cell text edit works without changing table structure"
+  - "existing diagram node label edit works without changing IDs, connections, or layout"
+  - "cancel discards the draft"
+  - "apply validates the draft before commit and blocks invalid drafts"
+  - "saved apply updates updatedAt and preserves id, createdAt, theme, and sourceCandidateUid"
+  - "preview apply preserves sourceCandidateUid and isPreview"
+  - "candidate payload remains unchanged"
+  - "renderer and export DOM remain unchanged"
+  - "App.tsx remains orchestration only"
+
+non_goals:
+  - "adding or deleting rows, columns, nodes, or connections"
+  - "chart type changes"
+  - "broad chart config editing"
+  - "full style system"
+  - "custom color palette"
+  - "typography or layout engine"
+  - "template engine"
+  - "AI chat editing"
+  - "Firebase or persistence"
+  - "export changes"
+
+required_tests:
+  - "draft deep clone and candidate/source immutability"
+  - "title apply and cancel"
+  - "chart point label/value apply and cancel"
+  - "table cell text apply and cancel"
+  - "diagram node label apply and cancel"
+  - "invalid draft apply rejection"
+  - "saved metadata preservation and updatedAt update"
+  - "preview metadata preservation"
+  - "protected files absent from diff"
+  - "candidate adapter, candidateModel, and documentWorkflow regressions"
+
+stop_conditions:
+  - "requires FigureRenderer or export changes"
+  - "requires candidate policy, M1C adapter, or document workflow changes"
+  - "requires package or dependency changes"
+  - "requires product decision for structural add/delete"
+  - "App.tsx would require broad refactor"
+  - "scope expands into M1E, M2, M3, or M4"

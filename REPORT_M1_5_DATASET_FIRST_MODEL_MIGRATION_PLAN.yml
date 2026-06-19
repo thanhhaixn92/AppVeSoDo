@@ -1,0 +1,146 @@
+phase: "M1.5_DATASET_FIRST_MODEL_MIGRATION_PLANNING"
+status: "AUDIT_COMPLETE"
+mode: "audit-only"
+code_changed: false
+branch: "codex/m1-5-dataset-first-planning"
+latest_commit: "9b6e1bc"
+
+audit_result: "AUDIT_PASS"
+readiness: "READY"
+audit_only_confirmed: true
+files_modified: 0
+files_created: 0
+files_deleted: 0
+commit_created: false
+pr_created: false
+
+changed_files: []
+
+commands:
+  targeted_test: "NOT_RUN (Planning phase)"
+  lint: "NOT_RUN (Planning phase)"
+  build: "NOT_RUN (Planning phase)"
+  unit_test: "NOT_RUN (Planning phase)"
+  e2e: "NOT_RUN (Planning phase)"
+
+not_changed:
+  export_dom_contract: true
+  renderer_dom_contract: true
+  firebase: true
+  real_ai_call: true
+  server_boundary: true
+
+risks_remaining:
+  - "App.tsx still orchestrates the old visual candidate model; this will be wired up in Slice 2."
+
+next_recommended_task: "M1.5_DATASET_FIRST_MODEL_MIGRATION_SLICE_1"
+
+# --- M1.5 Planning Details ---
+
+files_inspected:
+  governance_files:
+    - "AGENTS.md"
+    - ".agent/context/codebase-map.yml"
+    - ".agent/context/module-index.yml"
+    - ".agent/context/issue-memory.yml"
+    - ".agent/context/root-cause-library.yml"
+    - ".agent/context/risk-register.yml"
+    - ".agent/context/file-ownership.yml"
+    - ".agent/context/file-locks.yml"
+    - ".agent/context/milestone-acceptance.yml"
+    - ".agent/project/protected-areas.md"
+    - ".agent/project/current-roadmap.md"
+    - ".agent/project/product-profile.md"
+    - ".agent/core/universal-report-format.md"
+  source_files:
+    - "src/types.ts"
+    - "src/analysis/candidateModel.ts"
+    - "src/analysis/candidateToRenderableAdapter.ts"
+    - "src/hooks/useCandidateWorkflow.ts"
+    - "src/hooks/useDocumentWorkflow.ts"
+    - "src/components/FigureRenderer.tsx"
+    - "src/components/M1DLitePropertyPanel.tsx"
+    - "src/App.tsx"
+  test_files:
+    - "tests/candidateModel.test.ts"
+    - "tests/candidateToRenderableAdapter.test.ts"
+    - "tests/figureEditingWorkflow.test.ts"
+    - "tests/documentWorkflow.test.ts"
+
+current_architecture_summary: |
+  The current system follows a VisualCandidate-first architecture. The AI and rule engines generate a monolithic `VisualCandidate` object that is stored directly in `useCandidateWorkflow`. This object serves multiple purposes: it holds the raw source data (provenance), the AI's rendering recommendation, the actual renderable payload, and the workflow state. `candidateToRenderableAdapter.ts` then extracts the renderable payload from this monolith for the canvas.
+
+visual_candidate_conflation_points: |
+  The `VisualCandidate` type currently mixes:
+  1. Dataset/Provenance: `sourceText`, `sourceExcerpt`, `sourceSectionHeading`, `extractedItems`.
+  2. Figure Recommendation: `visualType`, `confidence`, `rationale`, `recommendedTemplates`.
+  3. Renderable Payload: `data: { type, chart, diagram, table }` and `title`.
+  4. Workflow State & Status: `status`, `uiStatus`, `warnings`.
+
+m1c_compatibility_strategy: |
+  `candidateToRenderableAdapter.ts` acts as the M1C adapter boundary. In the new dataset-first architecture, it will be updated to accept either a legacy `VisualCandidate` or a structured pair of `(DatasetCandidate, FigureRecommendation)` and construct the exact same `RenderableFigurePayload`. This pure functional approach guarantees compatibility without breaking the existing preview and apply workflows.
+
+m1d_lite_safety_strategy: |
+  M1D-LITE editing workflow relies on the typed `SavedFigure` (via `useFigureEditingWorkflow`) after the candidate has been applied to the canvas. Because our migration slice only affects the pre-apply candidate generation boundary, the post-apply editing workflow will be completely unaffected.
+
+governance_constraints_applied: |
+  - AGENTS.md: Stop and report instead of guessing when scope expands. Keep M1.5 strictly bounded.
+  - protected-areas.md: Do not touch export DOM contract, renderer wrappers, Firebase, Auth, server, real AI, or document workflow.
+  - current-roadmap.md: Confirmed M1.5 Dataset-first migration must execute entirely before starting M1E AI chat.
+  - file-ownership.yml: `src/types.ts` requires explicit task scope. `src/hooks/useCandidateWorkflow.ts` is owned by M1B-2 and needs tests.
+  - file-locks.yml: No conflicting active locks.
+
+test_coverage_review: |
+  - `tests/candidateModel.test.ts`: Protects candidate UI status, preview/apply policy, stable IDs, and dedupe metadata preservation. Will remain passing.
+  - `tests/candidateToRenderableAdapter.test.ts`: Protects the boundary between candidate generation and the renderable payload. MUST be extended in Slice 1 to ensure the new dataset-first splitter produces the exact same renderable payload.
+  - `tests/figureEditingWorkflow.test.ts`: Protects deep-cloned editable drafts. Must remain untouched and passing.
+  - `tests/documentWorkflow.test.ts`: Protects raw preservation boundary. Must remain untouched and passing.
+
+slice_1_plan_final: |
+  To strictly comply with governance and avoid unintended runtime breaks, Slice 1 will be purely structural and test-driven:
+  a. Add `DatasetCandidate`, `FigureRecommendation`, `FigureTypeOption`, and `DatasetSelection` to `src/types.ts`.
+  b. Create a pure compatibility adapter function (e.g., `deriveDatasetFirstFromLegacy(candidate)`) that converts legacy `VisualCandidate` into the new types without mutating state.
+  c. Add unit tests covering the new types and the pure splitter function.
+  d. Do NOT change runtime behavior in `useCandidateWorkflow` or `App.tsx`. Wire-up will happen in Slice 2 after the types and pure functions are proven safe.
+
+planned_changed_files_for_slice_1:
+  likely_allowed:
+    - "src/types.ts"
+    - "src/analysis/datasetModel.ts (new pure function file)"
+    - "tests/datasetModel.test.ts (new test file)"
+  risky_needs_explicit_approval:
+    - "src/hooks/useCandidateWorkflow.ts (Deferred from Slice 1)"
+    - "src/App.tsx (Deferred from Slice 1)"
+
+forbidden_or_deferred: |
+  The following are strictly deferred or forbidden during Slice 1:
+  - M1E AI chat command workflow.
+  - Export refactor and export DOM contracts.
+  - Firebase, Auth, User permissions.
+  - Server boundaries and package dependencies.
+  - AI runtime logic (continue to emit legacy VisualCandidate).
+  - Renderer DOM wrappers.
+  - Large App.tsx decomposition.
+  - Rendering pipeline polish.
+
+test_plan: |
+  - Add unit tests for the pure splitter function verifying no data loss.
+  - Run existing regression tests: `npm test -- candidateModel candidateToRenderableAdapter figureEditingWorkflow documentWorkflow`.
+  - E2E tests: NOT_RUN (environment blocked).
+
+manual_qa_plan: |
+  - Candidate Generation: Ensure documents still generate candidates.
+  - Preview/Apply: Ensure clicking candidates still previews and applies to canvas.
+  - Invalid Candidate Recovery: Ensure broken candidates show correct errors.
+  - M1D-LITE Editing: Ensure property panel edits still work perfectly.
+  - Save/Export Smoke: Ensure figure saves and exports to PNG/PDF/SVG.
+
+rollback_plan: |
+  If compatibility breaks, perform a standard `git revert` of Slice 1. Because Slice 1 consists only of pure TypeScript types and pure mapping functions without React state changes, reverting carries zero side-effects.
+
+acceptance_criteria_for_slice_1:
+  - "No behavior change unless intentionally approved."
+  - "No candidate policy behavior change."
+  - "No adapter behavior break."
+  - "No M1D-LITE regression."
+  - "No export, runtime, or dependency changes."

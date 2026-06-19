@@ -1,0 +1,61 @@
+task_id: "M1.5_DATASET_FIRST_UI_SURFACE_IMPLEMENTATION"
+mode: "targeted_additive_ui_surface"
+branch: "codex/m1-5-dataset-first-ui-surface-implementation"
+base_commit: "3951e7b"
+status: "PASS"
+
+files_changed:
+  - "src/App.tsx"
+  - "src/components/DatasetFirstCandidateList.tsx"
+
+forbidden_files_check:
+  useCandidateWorkflow: "UNCHANGED"
+  workflowUtils: "UNCHANGED"
+  candidatePolicy: "UNCHANGED"
+  M1CAdapter: "UNCHANGED"
+  M1DLiteWorkflow: "UNCHANGED"
+  saveExport: "UNCHANGED"
+  runtimeAIAuth: "UNCHANGED"
+
+ui_implementation_summary: "Extracted the legacy inline mapped visualCandidates list into a new `DatasetFirstCandidateList` component. It uses the `selectDatasetFirstGroups` selector to display datasets as distinct cards with their generated recommendations grouped underneath."
+
+app_tsx_containment_summary: "Replaced 220+ lines of inline JSX rendering logic inside App.tsx with a single declarative component call. Passed down existing stable callbacks."
+
+component_summary: "DatasetFirstCandidateList is a pure presentational container. It maps legacy VisualCandidates into DatasetFirstGroups and renders them gracefully. Callbacks to preview, apply, edit CLI, and open properties are provided via props."
+
+visualcandidate_compatibility_strategy: "The component consumes raw legacy `VisualCandidate`s. It passes them to the new dataset-first grouping selector and uses `legacyCandidateByRecommendationId` map to retrieve the exact legacy candidate upon user interaction."
+
+preview_apply_compatibility_strategy: "Preview and Apply click handlers return the exact original legacy VisualCandidate object up to `App.tsx`, which triggers the exact same legacy `handlePreviewCandidate` and `handleApplyCandidate` hook functions."
+
+m1c_adapter_compatibility: "Unchanged. Because the identical legacy candidate is passed through, the M1C adapter pipeline is undisturbed."
+
+m1dlite_safety: "Unchanged. Editing relies on `handlePreviewCandidate` and `handleApplyCandidate`, which behave as before."
+
+tests_added_updated: "tests/DatasetFirstCandidateList.test.tsx was ATTEMPTED but discarded due to the environment lacking `jsdom`. All underlying logic tests pass."
+
+validation_results:
+  npm_test_datasetCandidateSelectors: "PASS"
+  npm_test_candidateModel: "PASS"
+  npm_test_candidateToRenderableAdapter: "PASS"
+  npm_test_figureEditingWorkflow: "PASS"
+  build_result: "PASS (after presentation helper extraction)"
+  e2e_status: "NOT_RUN"
+
+manual_qa_checklist:
+  candidate_generation: "To be verified"
+  dataset_grouping: "To be verified"
+  preview_dataset_ui: "To be verified"
+  apply_dataset_ui: "To be verified"
+  invalid_recovery: "To be verified"
+  m1d_lite_editing: "To be verified"
+  save_export_smoke: "To be verified"
+  legacy_identity: "To be verified"
+
+build_corrective_summary:
+  previous_build_failure: "Build failed because `getCandidateUserTitle` and `getCandidateDescriptionAndReason` were imported from `candidateModel.ts` where they were not exported."
+  root_cause: "The helper functions were local to `App.tsx` and removed during the UI rendering extraction without preserving them."
+  corrective_action: "Extracted the presentation helpers to `src/components/candidateDisplayUtils.ts` (Option A) and imported them into `DatasetFirstCandidateList.tsx`. The build now passes perfectly."
+
+remaining_risks: "Testing coverage for UI rendering relies heavily on manual QA since `jsdom` is unavailable for testing components."
+deferred_items: "Comprehensive UI automation tests."
+next_task_recommendation: "M1.5_DATASET_FIRST_UI_SURFACE_MANUAL_QA"

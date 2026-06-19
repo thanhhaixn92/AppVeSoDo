@@ -1,0 +1,40 @@
+task_id: "MODEL_INDEPENDENT_CSS_POLISH_MICRO"
+phase: "MODEL_INDEPENDENT_CSS_POLISH_MICRO"
+mode: "targeted_ui_polish"
+branch: "codex/model-independent-css-polish-micro"
+base_commit: "8a983fe"
+
+changed_files:
+  - "src/components/FigureRenderer.tsx"
+  - "src/components/M1DLitePropertyPanel.tsx"
+
+forbidden_files_check: "PASS"
+dataset_first_migration_changes: "NONE"
+m1e_changes: "NONE"
+
+polish_summary: |
+  Performed safe, model-independent CSS/theme polish:
+  - Canvas table readability: Increased base font size to text-sm, adjusted padding to px-6 py-4, and improved border weighting and color contrast.
+  - Chart visual quality: Softened axis stroke and text colors to #475569 with normal 500 font-weight. Increased axis font size to 12.
+  - Canvas spacing: Increased padding in the footer/caption block to px-12 py-8 and enlarged figure titles to text-lg for better visual hierarchy.
+  - M1D-LITE panel: Refined property panel input padding (px-3 py-2.5) and increased text sizes from text-[10px]/text-xs to text-[11px] uppercase tracking-wide and text-sm for inputs.
+
+deferred_items: |
+  - Chart palette updates are currently deferred; dynamic palette logic based on metric type already exists and modifying getThemeColors in ThemeSelector.tsx risks side effects with user selections. A robust palette system refactoring can be done later if needed.
+
+tests_validation:
+  - command: "npm test -- figureEditingWorkflow"
+    result: "PASS (17/17 tests passed)"
+  - e2e: "NOT_RUN"
+
+manual_qa_checklist:
+  - "[ ] table readability in canvas is improved"
+  - "[ ] chart palette/contrast looks better"
+  - "[ ] spacing around figure title/body is more balanced"
+  - "[ ] M1D-LITE panel still usable and looks cleaner"
+  - "[ ] candidate preview/apply still works"
+  - "[ ] save/export smoke still works"
+
+remaining_risks: "None identified for this targeted presentation-only task."
+
+next_recommended_task: "M1.5_DATASET_FIRST_MODEL_MIGRATION"

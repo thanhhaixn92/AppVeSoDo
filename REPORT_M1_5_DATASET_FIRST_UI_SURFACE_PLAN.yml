@@ -1,0 +1,109 @@
+phase: "M1.5_DATASET_FIRST_UI_SURFACE_PLANNING"
+status: "PASS"
+mode: "ui_architecture_planning_only"
+code_changed: false
+branch: "codex/m1-5-dataset-first-ui-surface-planning"
+base_commit: "f0ed40c"
+
+files_inspected:
+  governance_files:
+    - "AGENTS.md"
+    - ".agent/context/project-state.yml"
+    - ".agent/context/codebase-map.yml"
+    - ".agent/context/module-index.yml"
+    - ".agent/context/risk-register.yml"
+    - ".agent/context/file-ownership.yml"
+    - ".agent/context/file-locks.yml"
+    - ".agent/context/milestone-acceptance.yml"
+    - ".agent/project/protected-areas.md"
+    - ".agent/project/current-roadmap.md"
+    - ".agent/project/product-profile.md"
+    - ".agent/core/universal-report-format.md"
+  report_files:
+    - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_PLAN.yml"
+    - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_1.yml"
+    - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_PLAN.yml"
+    - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_IMPLEMENTATION.yml"
+  source_files:
+    - "src/analysis/datasetModel.ts"
+    - "src/analysis/datasetCandidateSelectors.ts"
+    - "src/hooks/useCandidateWorkflow.ts"
+    - "App.tsx"
+    - "src/components/FigureRenderer.tsx"
+    - "src/components/M1DLitePropertyPanel.tsx"
+    - "src/components/CandidateThumbnail.tsx"
+    - "src/components/WorkflowStepper.tsx"
+  test_files:
+    - "tests/datasetModel.test.ts"
+    - "tests/datasetCandidateSelectors.test.ts"
+    - "tests/candidateModel.test.ts"
+    - "tests/candidateToRenderableAdapter.test.ts"
+    - "tests/figureEditingWorkflow.test.ts"
+
+current_ui_candidate_flow_summary:
+  exact_area_in_app_tsx: "Lines ~2800-3100 inside the `activeMainScreen === 'drawings'` tab condition."
+  visual_candidates_mapping: "The flat `visualCandidates` array is sorted by status and mapped directly inline. Each candidate renders a `CandidateThumbnail`, title, reason, and preview/apply action buttons."
+  callbacks_driving_preview_apply: "`handlePreviewCandidate` and `handleApplyCandidate` from `useCandidateWorkflow.ts`."
+
+slice_1_and_2_dependency_summary:
+  what_datasetModel_ts_provides: "Pure type definitions (`DatasetCandidate`, `FigureRecommendation`, etc.) and the pure separation logic (`deriveDatasetFirstFromLegacyCandidate`)."
+  what_datasetCandidateSelectors_ts_provides: "A pure mapping function `selectDatasetFirstGroups` that consumes legacy visual candidates and returns grouped datasets and recommendations."
+  how_legacy_visualcandidate_mapping_remains_available: "The selector returns `legacyCandidateByRecommendationId`, allowing UI interactions on new recommendations to retrieve the exact original legacy `VisualCandidate`."
+
+ui_options_evaluated:
+  Option_A: "Read-only DatasetCandidatePanel beside/above existing list. Creates dual/competing UI representations."
+  Option_B: "Replace visible candidate list with dataset cards while mapping back to legacy candidates. Better UX, but risky if done purely inside App.tsx."
+  Option_C: "Extract candidate rendering to a dedicated component/container using dataset-first selector. Keeps App.tsx clean and encapsulates mapping."
+
+recommended_ui_option:
+  recommendation: "Option C, but strictly limited to an additive extraction. We will create `<DatasetFirstCandidateList />` which consumes legacy `visualCandidates` and the *unchanged* preview/apply callbacks. Inside, it uses the dataset selector to render cards. No legacy workflow logic is replaced; it merely groups the presentation."
+
+implementation_scope_guardrails:
+  candidate_generation_change: false
+  preview_apply_behavior_change: false
+  m1c_adapter_behavior_change: false
+  m1d_lite_workflow_change: false
+  save_export_behavior_change: false
+  m1e_started: false
+  package_server_firebase_auth_ai_changes: false
+
+app_tsx_containment_strategy:
+  exact_plan: "Remove the inline candidate `.map` block inside App.tsx and replace it with `<DatasetFirstCandidateList />`. This eliminates hundreds of lines of presentation bloat from App.tsx while introducing dataset-first groupings."
+  planned_new_component_name_and_props: "`DatasetFirstCandidateList` accepting `candidates`, `savedFigures`, `selectedCandidateUid`, `onPreview`, and `onApply`."
+  unchanged_callbacks: "`handlePreviewCandidate`, `handleApplyCandidate`"
+  app_tsx_edit_required: "Yes, App.tsx must be edited only to substitute the inline JSX block with the new component."
+
+planned_changed_files_for_ui_implementation:
+  allowed_files:
+    - "src/components/DatasetFirstCandidateList.tsx (NEW)"
+    - "src/components/DatasetCandidateCard.tsx (NEW - optional subcomponent)"
+    - "App.tsx (MODIFY - strictly to replace candidate map block)"
+  risky_deferred_files:
+    - "src/hooks/useCandidateWorkflow.ts"
+    - "src/analysis/candidateModel.ts"
+    - "src/components/FigureRenderer.tsx"
+    - "Firebase/AI runtime/Export/Auth"
+
+test_plan:
+  component_tests: "If feasible, add pure React testing for the new component to ensure it calls `onPreview` with the correct mapped legacy candidate."
+  selector_tests: "tests/datasetCandidateSelectors.test.ts must remain passing."
+  legacy_tests: "tests/candidateModel.test.ts, tests/candidateToRenderableAdapter.test.ts, tests/figureEditingWorkflow.test.ts must remain passing."
+  e2e: "NOT_RUN unless Chromium actually runs."
+
+manual_qa_plan:
+  candidate_generation: "Run generation to ensure it successfully passes through unmodified."
+  dataset_grouping_display: "Verify the UI correctly shows clustered datasets instead of flat options."
+  preview_apply: "Clicking preview/apply on a nested option must correctly load the canvas without errors."
+  invalid_candidate_recovery: "Ensure 'needs_review' warnings still appear."
+  m1d_lite_editing: "Ensure editing a saved/previewed figure still works correctly."
+  save_export_smoke: "Save and Export functions must continue to work normally."
+
+rollback_plan: "If the component approach fails or causes bugs, perform a git checkout of App.tsx to the baseline commit to instantly restore the flat legacy UI."
+
+acceptance_criteria_for_ui_implementation:
+  - "New DatasetFirstCandidateList component exists and uses selectDatasetFirstGroups."
+  - "App.tsx inline candidate block is removed and replaced cleanly."
+  - "No changes to candidate generation, preview/apply handlers, or adapter payloads."
+  - "All unit tests pass."
+
+next_recommended_task: "M1.5_DATASET_FIRST_UI_SURFACE_IMPLEMENTATION"

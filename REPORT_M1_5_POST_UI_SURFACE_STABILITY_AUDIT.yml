@@ -1,0 +1,226 @@
+task_id: "M1.5_POST_UI_SURFACE_STABILITY_AUDIT"
+task_name: "Audit Dataset-first UI Surface crash on current branch"
+phase: "M1.5_POST_UI_SURFACE_STABILITY_AUDIT"
+status: "AUDIT_COMPLETE"
+audit_result: "AUDIT_FAIL"
+readiness: "BLOCKED"
+mode: "audit_only_report_only_no_source_changes"
+audit_only_confirmed: true
+branch: "work"
+commit:
+  hash: "9f9672e"
+  message: "chore(context): finalize M1C and resolve product surface"
+worktree_verification:
+  initial_git_status_short: ""
+  clean: true
+  feature_exists: true
+  feature_checks:
+    DatasetFirstCandidateList: "DatasetFirstCandidateList exists"
+    candidateDisplayUtils: "candidateDisplayUtils exists"
+known_qa_failure:
+  action: "Click Phân tích / analyze"
+  error: "Uncaught TypeError: Cannot read properties of undefined (reading 'columns')"
+  react_component: "DatasetFirstCandidateList"
+likely_root_cause:
+  actual_undefined_object: "dataset.dataStructure"
+  failing_read: "dataset.dataStructure.columns"
+  location: "src/components/DatasetFirstCandidateList.tsx:60"
+  code_path:
+    - "useCandidateWorkflow.handleAnalyzeDocumentText sets visualCandidates after analysis."
+    - "App.tsx passes visualCandidates to DatasetFirstCandidateList."
+    - "DatasetFirstCandidateList calls selectDatasetFirstGroups(candidates)."
+    - "selectDatasetFirstGroups calls deriveDatasetFirstFromLegacyCandidate(candidate)."
+    - "deriveDatasetFirstFromLegacyCandidate returns DatasetCandidate with datasetSelection, extractedItems, and data; it never creates dataStructure."
+    - "DatasetFirstCandidateList renders each non-empty group and immediately evaluates dataset.dataStructure.columns, dereferencing undefined dataStructure."
+  triggering_shapes: "Every successfully derived DatasetCandidate produced by the current selector, including chart, table, diagram, ready, needs_review, needs_mapping, and not_ready candidates, because none has dataStructure."
+  table_like_assumption: "The component assumes a nonexistent dataStructure object with table-like columns/rows metadata, rather than reading the declared DatasetCandidate.data model."
+relevant_reads:
+  unsafe:
+    - location: "src/components/DatasetFirstCandidateList.tsx:60"
+      read: "dataset.dataStructure.columns"
+      reason: "dataStructure is absent from DatasetCandidate and from deriveDatasetFirstFromLegacyCandidate output; this is the direct runtime crash."
+    - location: "src/components/DatasetFirstCandidateList.tsx:62"
+      read: "dataset.dataStructure.columns.length"
+      reason: "Same undefined parent; reached only if the preceding unsafe read somehow succeeds."
+    - location: "src/components/DatasetFirstCandidateList.tsx:65"
+      read: "dataset.dataStructure.rows"
+      reason: "dataStructure is absent; this would crash after columns guard is corrected unless guarded too."
+    - location: "src/components/DatasetFirstCandidateList.tsx:67"
+      read: "dataset.dataStructure.rows.length"
+      reason: "Same undefined parent."
+    - location: "src/components/DatasetFirstCandidateList.tsx:70"
+      read: "dataset.dataStructure.entities"
+      reason: "dataStructure is absent; this is another latent crash."
+    - location: "src/components/DatasetFirstCandidateList.tsx:72"
+      read: "dataset.dataStructure.entities.length"
+      reason: "Same undefined parent."
+  conditionally_unsafe:
+    - location: "src/analysis/datasetModel.ts:88-90"
+      read: "candidate.data.chart / candidate.data.diagram / candidate.data.table"
+      reason: "No local guard for candidate.data; current typed workflow expects data, but malformed runtime candidates can throw during derivation."
+    - location: "src/analysis/datasetModel.ts:97"
+      read: "candidate.data.type"
+      reason: "No local candidate.data guard when figureType is absent."
+    - location: "src/components/candidateDisplayUtils.ts:20-32"
+      read: "cand.data.type and cand.data chart/table/diagram presentation reads"
+      reason: "Assumes data exists; called only after legacy candidate mapping but UI has no local malformed-candidate guard."
+  semantically_unsafe:
+    - location: "src/analysis/datasetCandidateSelectors.ts:36-43"
+      read: "first derived datasetCandidate retained for all candidates sharing sourceGroupId"
+      reason: "Grouped recommendations can have different payloads, while the group dataset retains only the first candidate's data. This does not cause the columns crash but can misrepresent grouped data."
+    - location: "src/components/DatasetFirstCandidateList.tsx:129-135"
+      read: "rec.figureType fallback treats every non-chart/non-diagram type as table"
+      reason: "Unknown or unsupported figure types are labeled as table."
+  safe:
+    - location: "src/components/CandidateThumbnail.tsx:10-13"
+      read: "candidate.data?.table / diagram / chart"
+      reason: "Optional chaining guards data and payload presence."
+    - location: "src/analysis/candidateToRenderableAdapter.ts:18-47"
+      read: "candidate.data and matching chart/table/diagram payload"
+      reason: "Guards candidate/data and throws descriptive errors for missing matching payloads."
+    - location: "src/lib/workflowUtils.ts:248-346"
+      read: "figure chart/table/diagram payload, table columns/rows, chart data"
+      reason: "Type branches and payload/array guards protect the reads and return validation errors."
+    - location: "src/components/FigureRenderer.tsx:267-547"
+      read: "figure chart/table/diagram payload and table columns/rows"
+      reason: "Render branches guard matching payloads and arrays before mapping."
+    - location: "src/components/M1DLitePropertyPanel.tsx:23-50"
+      read: "draft chart/table/diagram payload"
+      reason: "Each branch checks matching draft.type and payload before nested reads."
+    - location: "src/analysis/candidateModel.ts:88"
+      read: "candidate.data and candidate.data[type]"
+      reason: "Short-circuit guards data/type before indexed payload read."
+selection_findings:
+  dataset_selection: "DatasetSelection fields are optional and may be undefined for chart, diagram, table, not_ready, and needs_mapping candidates; current DatasetFirstCandidateList does not dereference datasetSelection and therefore these omissions do not cause this crash."
+  selected_candidate_uid: "Comparison against a derived legacy candidate uid/id is safe."
+compatibility_checks:
+  visual_candidate:
+    result: "PASS_WITH_UI_BLOCKER"
+    finding: "Recommendation IDs map back to the original legacy VisualCandidate, and preview/apply callbacks receive that original object. The list crashes before those actions become usable."
+  app_tsx_containment:
+    result: "PASS"
+    finding: "App.tsx imports and renders DatasetFirstCandidateList and passes existing candidate workflow handlers; dataset grouping/derivation stays in selector/model modules."
+  candidate_policy:
+    result: "PASS"
+    finding: "DatasetFirstCandidateList calls isCandidateUsable, isCandidatePreviewable, and getCandidateUiStatus from candidateModel.ts; no duplicated preview/apply policy found in the new UI component."
+  m1c_adapter:
+    result: "PASS"
+    finding: "Legacy VisualCandidate is passed back to existing handlers; candidateToRenderableAdapter guards matching payloads and targeted adapter tests pass."
+  m1d_lite:
+    result: "PASS"
+    finding: "M1D-LITE property panel/editing workflow remains downstream of applied renderable figures; targeted tests pass."
+  save_export:
+    result: "NO_NEW_UI_SURFACE_CHANGE_FOUND; RUNTIME_FLOW_BLOCKED_BEFORE_ACTIONS"
+    finding: "The dataset-first component does not implement save/export logic. Existing apply/save/export paths are not reached when rendering crashes."
+protected_scope_check:
+  source_files_changed_by_audit: false
+  tests_changed_by_audit: false
+  package_changed_by_audit: false
+  export_changed_by_audit: false
+  firebase_changed_by_audit: false
+  auth_changed_by_audit: false
+  server_changed_by_audit: false
+  ai_runtime_changed_by_audit: false
+  m1e_started_by_audit: false
+files_inspected:
+  - "AGENTS.md"
+  - ".agent/context/project-state.yml"
+  - ".agent/context/codebase-map.yml"
+  - ".agent/context/module-index.yml"
+  - ".agent/context/issue-memory.yml"
+  - ".agent/context/root-cause-library.yml"
+  - ".agent/context/file-ownership.yml"
+  - ".agent/context/file-locks.yml"
+  - ".agent/context/milestone-acceptance.yml"
+  - ".agent/project/protected-areas.md"
+  - ".agent/project/current-roadmap.md"
+  - ".agent/project/product-profile.md"
+  - ".agent/project/architecture-profile.md"
+  - ".agent/core/universal-report-format.md"
+  - "REPORT_M1_5_DATASET_FIRST_UI_SURFACE_PLAN.yml"
+  - "REPORT_M1_5_DATASET_FIRST_UI_SURFACE_IMPLEMENTATION.yml"
+  - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_PLAN.yml"
+  - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_1.yml"
+  - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_PLAN.yml"
+  - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_IMPLEMENTATION.yml"
+  - "src/App.tsx"
+  - "src/components/DatasetFirstCandidateList.tsx"
+  - "src/components/candidateDisplayUtils.ts"
+  - "src/components/CandidateThumbnail.tsx"
+  - "src/analysis/datasetCandidateSelectors.ts"
+  - "src/analysis/datasetModel.ts"
+  - "src/analysis/candidateModel.ts"
+  - "src/analysis/candidateToRenderableAdapter.ts"
+  - "src/lib/workflowUtils.ts"
+  - "src/hooks/useCandidateWorkflow.ts"
+  - "src/components/FigureRenderer.tsx"
+  - "src/components/M1DLitePropertyPanel.tsx"
+  - "tests/datasetCandidateSelectors.test.ts"
+  - "tests/candidateModel.test.ts"
+  - "tests/candidateToRenderableAdapter.test.ts"
+  - "tests/figureEditingWorkflow.test.ts"
+optional_reports_missing: []
+test_coverage_gaps:
+  - "No component/render test mounts DatasetFirstCandidateList with a non-empty candidate list."
+  - "datasetCandidateSelectors tests assert grouping and mapping only; they do not assert the exact DatasetCandidate contract consumed by the UI."
+  - "Selector test fixtures omit actual chart/table payloads and still pass because UI rendering is not exercised."
+  - "TypeScript/build did not catch dataStructure because the component accesses a field not declared by DatasetCandidate under the repository's effective build/type-check setup."
+  - "No analyze-to-render integration test verifies that successful analysis can render DatasetFirstCandidateList without throwing."
+prioritized_issues:
+  - priority: "P0"
+    issue: "DatasetFirstCandidateList dereferences nonexistent dataset.dataStructure and crashes for every non-empty result set."
+  - priority: "P1"
+    issue: "The rows and entities reads share the same nonexistent parent and are latent follow-on crashes."
+  - priority: "P1"
+    issue: "No non-empty DatasetFirstCandidateList render/integration regression test exists."
+  - priority: "P2"
+    issue: "Grouped dataset retains only the first candidate's data and can semantically misrepresent other recommendations in the same sourceGroupId."
+commands_run:
+  initial_git_status_short:
+    command: "git status --short"
+    exit_code: 0
+    exact_output: ""
+  branch:
+    command: "git branch --show-current"
+    exit_code: 0
+    exact_output: "work"
+  commit:
+    command: "git log -1 --oneline"
+    exit_code: 0
+    exact_output: "9f9672e chore(context): finalize M1C and resolve product surface"
+  feature_file_check:
+    command: "test -f src/components/DatasetFirstCandidateList.tsx && echo 'DatasetFirstCandidateList exists' || echo 'DatasetFirstCandidateList missing'; test -f src/components/candidateDisplayUtils.ts && echo 'candidateDisplayUtils exists' || echo 'candidateDisplayUtils missing'"
+    exit_code: 0
+    exact_output: |-
+      DatasetFirstCandidateList exists
+      candidateDisplayUtils exists
+  datasetCandidateSelectors_test:
+    command: "CI=true npm test -- datasetCandidateSelectors"
+    exit_code: 0
+    exact_result: "PASS: Test Files 1 passed (1); Tests 6 passed (6); Duration 1.02s"
+  candidateModel_test:
+    command: "CI=true npm test -- candidateModel"
+    exit_code: 0
+    exact_result: "PASS: Test Files 1 passed (1); Tests 15 passed (15); Duration 1.36s"
+  candidateToRenderableAdapter_test:
+    command: "CI=true npm test -- candidateToRenderableAdapter"
+    exit_code: 0
+    exact_result: "PASS: Test Files 1 passed (1); Tests 11 passed (11); Duration 1.23s"
+  figureEditingWorkflow_test:
+    command: "CI=true npm test -- figureEditingWorkflow"
+    exit_code: 0
+    exact_result: "PASS: Test Files 1 passed (1); Tests 17 passed (17); Duration 3.79s"
+  build:
+    command: "npm run build"
+    exit_code: 0
+    exact_result: "PASS: 2765 modules transformed; built in 17.11s; dist/server.cjs built in 27ms; warning: index JS chunk 1,002.24 kB exceeds 500 kB"
+  pre_report_git_checks:
+    git_status_short: ""
+    git_diff_name_only: ""
+    git_diff_stat: ""
+changed_files:
+  - "REPORT_M1_5_POST_UI_SURFACE_STABILITY_AUDIT.yml"
+source_code_changed: false
+tests_changed: false
+next_recommended_task: "M1.5_DATASET_FIRST_UI_SURFACE_CORRECTIVE_COLUMNS_GUARD"
+recommended_corrective_task: "M1.5_DATASET_FIRST_UI_SURFACE_CORRECTIVE_COLUMNS_GUARD"

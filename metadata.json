@@ -1,0 +1,6 @@
+{
+  "name": "VMS Navigator",
+  "description": "Thiết kế và vẽ biểu đồ, sơ đồ, bảng biểu chuẩn học thuật (APA, IEEE, Nature) cho đề án, luận án nghiên cứu khoa học với sự hỗ trợ của AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

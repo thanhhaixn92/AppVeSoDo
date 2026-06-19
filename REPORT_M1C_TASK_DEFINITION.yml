@@ -1,0 +1,102 @@
+phase: "M1C-TASK-DEFINITION"
+status: "PASS"
+mode: "task_definition_only"
+code_changed: false
+
+m1c_goal:
+  summary: "Create a stable candidate-to-renderable adapter boundary."
+
+recommended_architecture:
+  current_flow: "VisualCandidate -> buildSavedFigure/buildPreviewFigure -> SavedFigure/PreviewFigure"
+  target_flow: "VisualCandidate -> candidateToRenderableAdapter -> RenderableFigurePayload -> SavedFigure/PreviewFigure"
+  rationale: "Establishes an intermediate representation that normalizes candidate output into a stable configuration suitable for rendering, property editing, and templating without mixing UI/persistence state."
+
+proposed_files:
+  create:
+    - "src/analysis/candidateToRenderableAdapter.ts"
+  modify:
+    - "src/lib/workflowUtils.ts"
+    - "src/types.ts" (to add RenderableFigurePayload)
+  tests:
+    - "tests/candidateToRenderableAdapter.test.ts"
+
+allowed_scope:
+  - "src/analysis/candidateToRenderableAdapter.ts"
+  - "src/types.ts"
+  - "src/lib/workflowUtils.ts"
+  - "src/hooks/useCandidateWorkflow.ts"
+  - "tests/candidateToRenderableAdapter.test.ts"
+
+forbidden_scope:
+  - "src/components/FigureRenderer.tsx"
+  - "export logic"
+  - "export DOM contract"
+  - "data-export-target changes"
+  - "renderer DOM wrappers"
+  - "Firebase"
+  - "auth"
+  - "server.ts"
+  - "package files"
+  - "real AI/Gemini runtime"
+  - "properties panel implementation"
+  - "dataset editor"
+  - "AI chat editing"
+  - "template engine implementation"
+  - "candidate policy behavior changes"
+  - "document workflow changes"
+
+renderable_figure_model_requirements:
+  - "Preserves figure type ('chart' | 'diagram' | 'table')"
+  - "Preserves title"
+  - "Preserves chart, table, or diagram structural payload"
+  - "Preserves sourceCandidateUid for source trace and provenance tracking"
+
+adapter_responsibilities:
+  - "Normalize VisualCandidate/RankedVisualCandidate data into RenderableFigurePayload"
+  - "Validate required renderable payload using existing workflowUtils validators"
+  - "Preserve source metadata"
+  - "Throw descriptive errors recoverable by UI where needed"
+  - "Maintain existing preview/save logic parity"
+
+adapter_non_responsibilities:
+  - "Rendering templates"
+  - "Dataset editing UI logic"
+  - "Color/theme logic (this remains at SavedFigure boundary)"
+  - "AI prompt/chat commands"
+  - "Persistence layer"
+
+acceptance_criteria:
+  - "RenderableFigurePayload interface is defined."
+  - "PreviewFigure and SavedFigure map/extend from RenderableFigurePayload."
+  - "candidateToRenderableAdapter encapsulates the candidate extraction logic."
+  - "buildSavedFigureFromCandidate and buildPreviewFigureFromCandidate utilize the adapter."
+  - "All unit tests pass."
+
+required_tests:
+  - "Chart candidate -> RenderableFigurePayload"
+  - "Table candidate -> RenderableFigurePayload"
+  - "Diagram candidate -> RenderableFigurePayload"
+  - "Invalid/Not-Ready candidate rejection"
+  - "Source trace preservation"
+
+risks_to_watch:
+  - "Coupling of UI-specific logic into the adapter."
+  - "setPreviewFigure state sync issues."
+
+implementation_prompt:
+  text: |
+    Task: M1C-IMPLEMENT-CANDIDATE-TO-RENDERABLE-ADAPTER
+    Please implement the M1C candidate-to-renderable boundary according to the rules in M1C-TASK-DEFINITION.
+    You may create src/analysis/candidateToRenderableAdapter.ts, modify src/types.ts to add RenderableFigurePayload, and refactor src/lib/workflowUtils.ts to use the new adapter.
+    Do NOT modify FigureRenderer, exports, or AI runtime logic.
+    Make sure to write tests in tests/candidateToRenderableAdapter.test.ts.
+
+post_audit_prompt:
+  text: |
+    Task: M1C-POST-AUDIT
+    Please audit the implementation of M1C-IMPLEMENT-CANDIDATE-TO-RENDERABLE-ADAPTER.
+    Check that the goal of candidate-to-renderable extraction was achieved without expanding scope into rendering, export, or AI runtime changes.
+    Produce standard audit yaml report.
+    
+next_recommended_task:
+  "M1C-IMPLEMENT-CANDIDATE-TO-RENDERABLE-ADAPTER"

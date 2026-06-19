@@ -1,0 +1,57 @@
+phase: "HUMAN_PRODUCT_SURFACE_CHECKPOINT_RESOLUTION_AND_INLINE_GOVERNANCE_SYNC"
+status: "PASS"
+mode: "checkpoint"
+code_changed: false
+branch: "codex/human-checkpoint-governance-sync"
+latest_commit: "4257533"
+
+changed_files:
+  - "AGENTS.md"
+  - ".agent/context/project-state.yml"
+  - ".agent/context/phase-history.yml"
+  - ".agent/context/handoff-log.md"
+  - ".agent/context/issue-memory.yml"
+  - ".agent/context/root-cause-library.yml"
+  - ".agent/context/risk-register.yml"
+  - ".agent/context/milestone-acceptance.yml"
+  - ".agent/context/codebase-map.yml"
+  - ".agent/context/module-index.yml"
+  - ".agent/project/product-profile.md"
+  - ".agent/project/current-roadmap.md"
+  - ".agent/project/architecture-profile.md"
+  - "REPORT_HUMAN_CHECKPOINT_GOVERNANCE_SYNC.yml"
+
+commands:
+  targeted_test: "N/A"
+  lint: "N/A"
+  build: "N/A"
+  unit_test: "N/A"
+  e2e: "N/A"
+
+not_changed:
+  export_dom_contract: true
+  renderer_dom_contract: true
+  firebase: true
+  real_ai_call: true
+  server_boundary: true
+  source_files_changed: false
+  tests_changed: false
+  package_files_changed: false
+
+decisions_recorded:
+  - "ACCEPT_M1D_LITE_AS_TEMPORARY_PRODUCT_SURFACE"
+  - "CONFIRM_DATASET_FIRST_M1_5_BEFORE_M1E"
+  - "PRIORITY_MODEL_CLEANUP_FIRST_WITH_ONLY_MODEL_INDEPENDENT_CSS_POLISH_ALLOWED"
+
+updates:
+  - "M1A through M1D-LITE recorded as AUDIT_PASS"
+  - "Candidate-to-canvas corrective manual QA recorded as PASS"
+  - "RISK-M1D-005 resolved as ACCEPTED_TEMPORARY_LIMITATION"
+  - "Roadmap updated to 8-step sequence"
+  - "Dataset-first target product model documented"
+
+risks_remaining:
+  - "RISK-M1D-006: Same-identity external figure updates do not auto-refresh an existing draft"
+  - "RISK-M1_5-001: VisualCandidate conflates dataset, type, renderable payload, and provenance"
+
+next_recommended_task: "RISK-M1D-006_CORRECTIVE"

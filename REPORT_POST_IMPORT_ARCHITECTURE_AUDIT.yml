@@ -1,0 +1,31 @@
+phase: "POST_IMPORT_ARCHITECTURE_AUDIT"
+status: "AUDIT_COMPLETE"
+
+current_architecture_map:
+  candidate_policy: "src/analysis/candidateModel.ts"
+  candidate_normalizer: "src/analysis/candidateNormalizer.ts"
+  document_workflow: "src/hooks/useDocumentWorkflow.ts"
+  candidate_workflow: "src/hooks/useCandidateWorkflow.ts"
+  candidate_to_renderable_adapter: "src/analysis/candidateToRenderableAdapter.ts"
+  figure_editing_workflow: "src/hooks/useFigureEditingWorkflow.ts"
+  figure_editing_ui: "src/components/M1DLitePropertyPanel.tsx"
+  orchestration: "src/App.tsx"
+
+milestone_status_summary:
+  M1A: "AUDIT_PASS"
+  M1B-1: "AUDIT_PASS"
+  M1B-2: "AUDIT_PASS"
+  M1C: "AUDIT_PASS"
+  M1D-LITE: "AUDIT_PASS"
+
+risks:
+  - "RenderableFigurePayload payload fields remain optional at type level; rely on runtime enforcement."
+  - "Broad PropertyPanel replaced with M1DLitePropertyPanel without human confirmation."
+  - "Same-identity external updates vs existing draft conflict policy needed."
+  - "E2E testing is blocked by Playwright HTTP 403 CDN errors."
+
+recommendations:
+  - "Execute HUMAN_PRODUCT_SURFACE_CHECKPOINT_BEFORE_M1E before writing any M1E code."
+  - "Decide if we restore the broad PropertyPanel or keep M1DLitePropertyPanel."
+
+start_M1E_now: false

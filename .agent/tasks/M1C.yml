@@ -1,0 +1,60 @@
+id: "M1C"
+title: "Candidate-to-renderable/template adapter boundary"
+status: "AUDIT_PASS"
+mode: "checkpoint_complete"
+
+checkpoint:
+  final_commit: "94ed25a"
+  audit_result: "AUDIT_PASS"
+  unit_tests: "114 passed"
+  e2e: "BLOCKED_BY_ENVIRONMENT: Playwright CDN HTTP 403"
+  next_milestone: "M1D — Figure editing properties panel"
+  remaining_risk: "RenderableFigurePayload payload fields remain optional at type level; adapter runtime validation enforces the matching payload."
+
+goal: >-
+  VisualCandidate / RankedVisualCandidate
+  -> candidateToRenderableAdapter
+  -> RenderableFigurePayload
+  -> workflowUtils
+  -> PreviewFigure / SavedFigure
+
+responsibilities:
+  - "convert candidate to RenderableFigurePayload"
+  - "preserve title/type/sourceCandidateUid/source trace/provenance where available"
+  - "deep-clone matching chart/table/diagram payload"
+  - "preserve existing preview/save behavior"
+  - "preserve saved id/timestamp/theme behavior"
+
+non_goals:
+  - "template engine"
+  - "properties panel"
+  - "AI chat"
+  - "export modernization"
+  - "persistence"
+
+allowed_files:
+  - "src/analysis/candidateToRenderableAdapter.ts"
+  - "src/types.ts"
+  - "src/lib/workflowUtils.ts"
+  - "tests/candidateToRenderableAdapter.test.ts"
+  - "tests/workflowUtils.renderablePayload.test.ts"
+
+avoid_touching:
+  - "src/hooks/useCandidateWorkflow.ts"
+
+forbidden_files:
+  - "src/components/FigureRenderer.tsx"
+  - "**/*export*"
+  - "firebase/**"
+  - "server.ts"
+  - "package.json"
+  - "package-lock.json"
+  - "AGENTS.md"
+
+required_tests:
+  - "chart/table/diagram conversion"
+  - "invalid/not_ready rejection using existing behavior"
+  - "source trace preservation"
+  - "preview compatibility"
+  - "saved figure compatibility"
+  - "no protected file changes"

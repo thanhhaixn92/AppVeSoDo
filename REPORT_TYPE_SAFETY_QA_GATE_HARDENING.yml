@@ -1,0 +1,33 @@
+id: "TYPE_SAFETY_QA_GATE_HARDENING"
+title: "Type Safety & QA Gate Hardening Bundle"
+status: "COMPLETED"
+date: "2026-06-16"
+
+summary: |
+  Fixed TypeScript compilation errors that were present on `main` due to incomplete typing of legacy candidates in `DatasetFirstCandidateList.tsx`. Added explicit linting step to the QA workflow to prevent recurrence.
+
+changes:
+  - type: FIX
+    scope: type_safety
+    description: "Changed `DatasetFirstCandidateListProps` to use `RankedVisualCandidate` instead of `VisualCandidate` since UI accesses `uid` and `validationError`."
+  - type: ENHANCEMENT
+    scope: type_safety
+    description: "Made `selectDatasetFirstGroups` generic over `VisualCandidate` to preserve extended types like `RankedVisualCandidate`."
+  - type: ENHANCEMENT
+    scope: qa_workflow
+    description: "Added `tsc --noEmit` as a required step in `.agent/workflows/qa-cycle.md`."
+  - type: ENHANCEMENT
+    scope: testing
+    description: "Fixed React `act()` warnings in unit tests by setting `globalThis.IS_REACT_ACT_ENVIRONMENT = true` in `tests/setup.ts`."
+
+deferred_items:
+  bundle_size: "Deferred bundle-size and code-splitting improvements to a future task."
+  docx_upload_support: "Deferred DOCX parsing (e.g. using mammoth) to a future task."
+
+verification:
+  lint: PASS
+  build: PASS
+  unit_tests: PASS
+  e2e_missing_payload: PASS
+  e2e_chart_workflow: BLOCKED_BY_ENVIRONMENT
+  e2e_full: BLOCKED_BY_ENVIRONMENT

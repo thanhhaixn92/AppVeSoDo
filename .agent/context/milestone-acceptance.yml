@@ -1,0 +1,127 @@
+# Milestone acceptance is an audit index.
+# The task file remains the single source of truth for exact scope and allowed files.
+
+milestones:
+  R7-M1A:
+    status: "AUDIT_PASS"
+    evidence:
+      - "candidate model centralized"
+      - "deterministic IDs"
+      - "dedupe preserves metadata"
+      - "candidateModel tests passed at checkpoint"
+
+  R7-M1B-1:
+    status: "AUDIT_PASS"
+    evidence:
+      - "useDocumentWorkflow extracted"
+      - "raw preservation boundary fixed"
+      - "documentWorkflow tests passed at checkpoint"
+
+  R7-M1B-2:
+    status: "AUDIT_PASS"
+    task_source_of_truth: ".agent/tasks/R7-M1B-2.yml"
+    must:
+      - "useCandidateWorkflow is created or verified as the candidate workflow owner."
+      - "App.tsx delegates candidate workflow state/handlers to useCandidateWorkflow while remaining orchestration shell."
+      - "Candidate policy remains centralized in src/analysis/candidateModel.ts."
+      - "No duplicate preview/apply/usability policy is introduced in App.tsx or the new hook."
+      - "Targeted candidate tests pass."
+      - "Lint, build, and unit tests are attempted and reported honestly."
+      - "E2E is classified using .agent/core/e2e-classification.md."
+    forbidden:
+      - "export DOM contract changes"
+      - "renderer DOM wrapper changes"
+      - "Firebase/auth/server changes"
+      - "real AI/Gemini runtime changes"
+      - "dependency/package changes"
+      - "starting M1C/M2/M3 implicitly"
+    audit_result_required: "AUDIT_PASS before human checkpoint"
+
+  M1C:
+    status: "AUDIT_PASS"
+    task_source_of_truth: ".agent/tasks/M1C.yml"
+    must:
+      - "candidate-to-renderable adapter exists."
+      - "RenderableFigurePayload or equivalent stable model exists."
+      - "workflowUtils uses adapter."
+      - "PreviewFigure/SavedFigure compatibility preserved."
+      - "renderer/export DOM unchanged."
+      - "candidate policy unchanged."
+      - "document workflow unchanged."
+      - "targeted adapter tests pass."
+    forbidden:
+      - "export DOM contract changes"
+      - "renderer DOM wrapper changes"
+      - "Firebase/auth/server changes"
+      - "real AI/Gemini runtime changes"
+      - "dependency/package changes"
+      - "template engine"
+      - "properties panel"
+      - "AI chat"
+    evidence:
+      - "candidate-to-renderable adapter exists and workflowUtils uses it"
+      - "matching chart/table/diagram payload is required at runtime"
+      - "candidate policy, document workflow, renderer, and export DOM unchanged"
+      - "targeted, regression, lint, build, and unit checks passed"
+      - "candidate-to-canvas corrective QA PASS"
+      - "E2E BLOCKED_BY_ENVIRONMENT due to Playwright CDN HTTP 403"
+    audit_result: "AUDIT_PASS"
+
+  M1D:
+    status: "HUMAN_CHECKPOINT_RESOLVED"
+    implementation_status: "M1D-LITE_AUDIT_PASS"
+    name: "Figure editing properties panel"
+
+  M1D-LITE:
+    status: "AUDIT_PASS"
+    task_source_of_truth: ".agent/tasks/M1D-LITE.yml"
+    must:
+      - "active PreviewFigure or SavedFigure is deep-cloned into an editable draft"
+      - "title edit works"
+      - "existing chart point label/value edit works without structural change"
+      - "existing table cell text edit works without structural change"
+      - "existing diagram node label edit works without IDs/connections/layout changes"
+      - "apply and cancel are explicit"
+      - "draft is validated before apply and invalid drafts are blocked"
+      - "saved apply updates updatedAt and preserves id/createdAt/theme/sourceCandidateUid"
+      - "preview apply preserves sourceCandidateUid and isPreview"
+      - "candidate payload remains unchanged"
+      - "renderer and export DOM remain unchanged"
+      - "targeted and regression tests pass"
+    forbidden:
+      - "structural add/delete of rows, columns, nodes, or connections"
+      - "FigureRenderer or export changes"
+      - "candidate policy, M1C adapter, or document workflow changes"
+      - "AI chat, template engine, Firebase, persistence, server, or dependency changes"
+    evidence:
+      - "typed reversible editing workflow owns deep-cloned draft and validation state"
+      - "title, chart point, table cell, and diagram node label edits implemented"
+      - "apply/cancel lifecycle and invalid-apply blocking tested"
+      - "renderer/export DOM, candidate policy, M1C adapter, and document workflow unchanged"
+      - "targeted, regression, lint, build, and unit checks passed"
+      - "E2E BLOCKED_BY_ENVIRONMENT"
+    audit_result: "AUDIT_PASS"
+    next_gate: "HUMAN_PRODUCT_SURFACE_CHECKPOINT_RESOLUTION (DONE)"
+
+  E2E_AND_SMOKE_STABILIZATION:
+    status: "PASS"
+    evidence:
+      - "build PASS"
+      - "unit PASS"
+      - "missing-payload E2E PASS"
+      - "chart-workflow E2E PASS"
+      - "full E2E PASS, 17 passed, 5 skipped"
+      - "AI Studio final smoke PASS"
+
+user_facing_flow_acceptance:
+  required: true
+  rule: >
+    For flows involving input, AI analysis, candidate cards, preview/apply, Canvas rendering,
+    editing, save, or export smoke, final acceptance requires Playwright E2E or browser verification evidence.
+    Static analysis and unit tests alone may support PARTIAL_PASS but not final PASS.
+  targeted_vs_full_e2e:
+    rule: >
+      Targeted E2E may validate a narrow fix, but full E2E results must be reported separately.
+      If full E2E is mixed/failing due unrelated known specs, classify honestly and create a follow-up task.
+  blocked_environment: >
+    If E2E/browser runtime is unavailable, report BLOCKED_BY_ENVIRONMENT with exact command/error.

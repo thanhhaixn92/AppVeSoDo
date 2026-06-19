@@ -1,0 +1,41 @@
+phase: "M1.5_DATASET_FIRST_MODEL_MIGRATION_SLICE_1"
+status: "PASS"
+mode: "targeted_model_boundary_slice"
+code_changed: true
+branch: "codex/m1-5-dataset-first-slice-1"
+base_commit: "cbaad1e"
+
+changed_files:
+  - "src/analysis/datasetModel.ts"
+  - "tests/datasetModel.test.ts"
+  - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_1.yml"
+
+commands:
+  targeted_test: "npm test -- datasetModel"
+  lint: "NOT_RUN"
+  build: "NOT_RUN"
+  unit_test: "npm test -- candidateModel && npm test -- candidateToRenderableAdapter && npm test -- figureEditingWorkflow"
+  e2e: "NOT_RUN"
+
+not_changed:
+  export_dom_contract: true
+  renderer_dom_contract: true
+  firebase: true
+  real_ai_call: true
+  server_boundary: true
+
+risks_remaining:
+  - "The new dataset-first types are completely decoupled and not wired into useCandidateWorkflow or App.tsx yet."
+
+next_recommended_task: "M1.5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_PLANNING"
+
+model_boundary_summary: "Introduced DatasetCandidate, FigureRecommendation, FigureTypeOption, and DatasetSelection. Created a pure functional derivation from legacy VisualCandidate."
+new_types_functions_introduced:
+  - "DatasetCandidate"
+  - "FigureRecommendation"
+  - "FigureTypeOption"
+  - "DatasetSelection"
+  - "deriveDatasetFirstFromLegacyCandidate"
+compatibility_strategy: "The derivation is a pure function that does not mutate the original candidate and produces deterministic dataset structures pointing back to the legacy ID, allowing side-by-side existence."
+tests_added:
+  - "tests/datasetModel.test.ts tests the pure derivation and identity preservation."

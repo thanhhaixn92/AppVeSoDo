@@ -1,0 +1,44 @@
+phase: "R7-ARCH-AUDIT-RESET - Overall Architecture Review and Refactor Plan"
+status: "AUDIT_COMPLETE"
+mode: "audit-only"
+code_changed: false
+branch_policy: "sửa tiếp trên branch hiện tại"
+git_state:
+  branch: "unknown (git restricted)"
+  modified_files: "unknown"
+  untracked_files: "unknown"
+  sync_blockers: "N/A"
+commands:
+  lint: "PASS"
+  unit_test: "PASS (10 passed, 80 tests)"
+  build: "PASS"
+  e2e: "BLOCKED_BY_ENVIRONMENT (Executable doesn't exist)"
+architecture_findings:
+  input_layer: "Dữ liệu được nhập qua DocumentEditor (kéo thả, nhập tay), chuyển thành array các blocks (DocumentBlock). App hỗ trợ copy HTML và parse, nhưng state vẫn chưa thống nhất hoàn toàn giữa documentText và blocks. Vấn đề stale text đôi lúc vẫn còn nguy cơ rủi ro."
+  raw_document_layer: "Chứa trong state `documentText` và draft. Việc trích xuất section (parseDocumentSections) có vẻ ổn cho rule nhưng việc lưu vết trace xuống Firebase / chunks chưa có. AI Adapter đang mock nhận text thuần."
+  ai_analysis_layer: " Đã có AI Contract tốt (aiAnalysisContract), adapter mock (aiAnalysisAdapter.ts) vẫn cực kỳ cơ bản (hardcoded tiêu đề generic như 'AI Chart', 'AI Summary Table', phân loại đơn giản, dễ mixing dataset). Chạy song song qua Promise.allSettled với Rule."
+  rule_engine_layer: "Rất cồng kềnh với hàng chục ngàn dòng phân tích số học, Regex. Dù chi tiết nhưng rule engine sẽ sớm trở thành điểm nghẽn bảo trì khi văn bản quá dị biệt. Có cơ sở hạ tầng tracking learning (logEvent) nhưng chưa tự cập nhật rule logic."
+  candidate_layer: "Schema khá đồ sộ. Tuy nhiên việc dedupe / merge giữa AI và Rule có thể tạo conflict tiêu đề / confidence. Status được normalize qua hàm getCandidateStatus. UI status map dần ổn nhưng candidate.data.type đôi khi thiếu tính nhất quán nội bộ (vd metadata)."
+  preview_layer: "FigureRenderer hoạt động tốt cho React component, hiển thị Recharts và SVG diagram. Zoom được giới hạn bằng Scale. Sạch sẽ."
+  persistence_layer: "Hiện tại phụ thuộc hoàn toàn vào localStorage (WorkspaceDraftV1, vms_correction_events). Chưa có cơ sở hạ tầng database remote (Firebase) -> Nguy cơ mất dữ liệu khi user clear data. Tuy nhiên không nên build Firebase đến khi candidate module hoàn toàn vững vàng."
+  export_layer: "Phụ thuộc vào DOM SVG rasterizing. Đã có chuẩn API nhưng đang dùng selected element rendering."
+critical_issues:
+  P0: "AI Adapter chỉ đang là mock, tạo ra ứng dụng ảo tưởng về năng lực AI. Nó trả về dữ liệu hỗn tạp, 'AI Chart' thay vì tiêu đề semantic. Chưa thể dùng làm AI-First production."
+  P1: "Merge logic giữa Rule và AI (Reconciler) có thể xóa nhầm candidate hoặc mix metadata làm hỏng schema."
+  P2: "Kiến trúc State ở App.tsx quá khổng lồ (gần 4000 dòng). Lifecycle của tài liệu từ Text -> Block -> Analysis -> Candidate khó trace khi thêm logic mới."
+recommended_architecture:
+  target_workflow: "Input -> Source Chunks -> Remote AI Analysis (structured Output) -> Normalized Candidate -> Render -> Commit -> Firebase Storage. "
+  data_model: "VisualCandidate cần abstract rõ hơn: sourceReference, dataPayload (chuẩn hóa ko phục thuộc UI build), validationStatus. Chuẩn hóa TableModel/ChartModel/DiagramModel tách bạch."
+  layer_boundaries: "Tách hoàn toàn App.tsx thành các custom hooks (useDocumentState, useAnalysisPipeline, useCandidateWorkflow) để chia trạng thái."
+  firebase_strategy: "KHÔNG NÊN LÀM BÂY GIỜ. Chờ sau khi AI pipeline thực sự hoạt động và Candidate ổn định."
+milestone_plan:
+  M1: "M1_stabilize_source_and_candidate_model: Đưa toàn bộ schema về chuẩn duy nhất. Đảm bảo parseDocument thuần túy."
+  M2: "M2_ai_first_analysis_pipeline: Làm thật AI Adapter dùng `@google/genai` (trên server) thay vì mock. Đọc hiểu tài liệu dài và chunking tốt, return schema chuẩn."
+  M3: "M3_preview_data_adapters: Hoàn thiện FigureRenderer để chịu tải mọi loại Table/Chart schema từ AI mà không crash. Cải tiến Rule Engine thành fallback mode."
+  M4: "M4_firebase_mvp_storage: Đưa backend-only Firestore skeleton để lưu chunks, runs, candidates."
+  M5: "M5_rule_learning_and_governance: Backend tính toán Rule effectiveness từ logs sửa chữa của user."
+do_not_do_next:
+  - "Không sửa lẻ thêm một candidate bug. Tránh rơi bào vòng vá víu."
+  - "Không tích hợp Firebase trước khi candidate model ổn. Sẽ tạo rác data trong DB."
+  - "Không commit nếu còn file pending ngoài scope."
+remaining_risks: "Sự phụ thuộc vào Recharts có thể quá cứng nhắc cho các yêu cầu xuất bản khoa học rất cao. Rule Analyzer đang nắm quyền kiểm soát quá lớn thay vì nhường cho AI."

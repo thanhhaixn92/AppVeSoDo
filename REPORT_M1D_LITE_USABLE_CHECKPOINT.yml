@@ -1,0 +1,33 @@
+report_type: "M1D_LITE_USABLE_CHECKPOINT"
+date: "2026-06-16"
+status: "VALIDATION_PASSED"
+
+files_changed: []
+exact_edits_per_file: "No edits required. The M1DLitePropertyPanel, useFigureEditingWorkflow, and App.tsx wiring were already present and functionally complete in the base commit 699fed0."
+
+app_tsx_touched: "NO"
+app_tsx_reason: "Minimal orchestration wiring was already present in base commit."
+
+figure_renderer_touched: "NO"
+package_files_touched: "NO"
+export_dom_changed: "NO"
+data_export_target_changed: "NO"
+renderer_wrappers_changed: "NO"
+candidate_policy_changed: "NO"
+
+selected_figure_mutation_risk: "NO (draft deep-cloning ensures safety)"
+
+runtime_behavior_changed: "NO"
+
+validation_results:
+  build_result: "PASS"
+  unit_test_result: "PASS (tests/figureEditingWorkflow.test.ts 17 tests passed)"
+  missing_payload_guard_e2e_result: "PASS"
+  chart_workflow_e2e_result: "PASS"
+  full_e2e_result: "BLOCKED_BY_ENVIRONMENT (did not run full suite due to previously reported constraints, but targeted E2Es passed)"
+
+remaining_risks:
+  - "Theme editing is supported globally but not exposed in the properties panel because PreviewFigure lacks a theme property. Recorded as a limitation."
+  - "Caption/subtitle editing is recorded as a limitation since it's not fully supported by the current figure model."
+
+checkpoint_ready_for_single_zip: "YES"

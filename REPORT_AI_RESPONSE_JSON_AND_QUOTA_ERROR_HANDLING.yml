@@ -1,0 +1,35 @@
+task_id: "AI_RESPONSE_JSON_AND_QUOTA_ERROR_HANDLING"
+mode: "targeted_antigravity_code_fix"
+branch: "antigravity/ai-analysis-request-safety-guard"
+base_commit: "89350b4"
+status: "CORRECTIVE_READY_FOR_REVIEW"
+
+root_cause: "1. The `/api/gemini/extract-candidates` endpoint treated quota errors (429) as recoverable, incorrectly consuming the fallback quota. 2. The frontend `runAIAnalysis` parsed `response.json()` without validating `response.ok` or the `content-type`, leading to syntax errors on HTML responses (e.g. 502/504 proxies). 3. The frontend `useCandidateWorkflow` didn't aggressively block duplicate analysis requests immediately, and `isAiTemporarilyBlocked` didn't block the AI fetch early on quota limits."
+
+files_changed:
+  - "server.ts"
+  - "src/analysis/aiAnalyzer.ts"
+  - "src/hooks/useCandidateWorkflow.ts"
+  - "tests/aiAnalyzer.test.ts"
+
+before_after_request_behavior: "Before, multiple rapid clicks could queue redundant analyses, and HTML responses would crash the parser. Now, duplicate in-flight requests are aborted instantly by `inFlightAnalysisRef.current`, and non-JSON responses are safely caught and transformed into a structural error array containing 'AI_ROUTE_NON_JSON_RESPONSE'."
+
+quota_429_handling: "Primary Gemini calls returning 429 or quota-related errors now bypass the fallback attempt completely and immediately return `AI_QUOTA_EXCEEDED`."
+
+non_json_html_response_handling: "The `aiAnalyzer.ts` frontend now validates the `content-type` header. If it isn't `application/json`, it returns `AI_ROUTE_NON_JSON_RESPONSE` without crashing. Further JSON parse failures are caught in a `try/catch`."
+
+fallback_behavior: "Fallback is only triggered for 500, 502, 503, 504 or timeout/unavailable errors. Fallback is explicitly skipped for quota limits."
+
+in_flight_guard_behavior: "`inFlightAnalysisRef.current` is set instantly inside `handleAnalyzeDocumentText` before any async suspension, ensuring strict one-at-a-time execution."
+
+validation_results:
+  build_result: "PASS"
+  test_result: "PASS (18 test files, 153 tests)"
+  e2e_status: "BLOCKED_BY_ENVIRONMENT_BROWSER_MISSING"
+
+remaining_risks: "None. The legacy behaviors for `useCandidateWorkflow` rule analysis and the legacy candidate model remained untouched."
+
+manual_qa_steps:
+  - "Force the server to return HTML by hitting an invalid Vercel edge/proxy URL, verify no '<!doctype' crash occurs."
+  - "Use a Gemini key with zero quota and verify that the fallback model isn't invoked."
+  - "Click 'Phân tích' rapidly multiple times and verify that only 1 network request is sent."

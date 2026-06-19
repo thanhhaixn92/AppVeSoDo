@@ -1,0 +1,21 @@
+report_id: "E2E_AND_CANDIDATE_MISSING_PAYLOAD_FIX"
+status: "IMPLEMENTED"
+
+context:
+  - issue: "Candidate apply flow fails when the candidate appears as 'DÙNG MẪU NÀY' (ready) but actually lacks the data payload (e.g. 'Chart candidate is missing its chart payload')"
+  - reproduction: "Added tests/e2e/missing-payload-guard.spec.ts to verify that candidates with no renderable payload are not clickable."
+
+fix_details:
+  candidateModel.ts:
+    - Updated `getCandidateUiStatus` to downgrade candidates to `needs_mapping` if their confidence is >= 0.9 but they lack actual `data.chart`, `data.table`, or `data.diagram` payloads.
+  DatasetFirstCandidateList.tsx:
+    - Added UI warning specifically for `needs_mapping` status to explicitly show "Cần ánh xạ dữ liệu trước khi dùng mẫu này." in place of the disabled action button, providing a clear reason to the user.
+  candidateWorkflow.test.ts:
+    - Updated unit tests to expect early-rejection warnings instead of application crashes when forcing a missing-payload candidate into the apply flow.
+
+verification:
+  - npm run test: PASS (153/153 tests)
+  - npm run test:e2e -- missing-payload-guard.spec.ts: PASS (both chromium and ipad)
+
+next_steps:
+  - Ready for pre-commit audit of these changes.

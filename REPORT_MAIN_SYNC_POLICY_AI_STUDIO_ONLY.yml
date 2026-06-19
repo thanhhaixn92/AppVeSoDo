@@ -1,0 +1,23 @@
+policy_name: "MAIN_SYNC_POLICY_AI_STUDIO_ONLY"
+date: "2026-06-16"
+status: "ACTIVE"
+
+rationale: >
+  To ensure runtime safety and environment consistency, GitHub `main` must only receive updates that have been strictly verified in the AI Studio environment via ZIP import. Direct PR merges from agent branches can bypass this verification and introduce transport/proxy breaks.
+
+ownership:
+  main_branch: "Strictly owned by Google AI Studio sync."
+
+antigravity_rules:
+  - rule_1: "Do not merge PRs (such as PR #4) directly into `main`."
+  - rule_2: "Do not push directly to `main`."
+  - rule_3: "Antigravity branches and PRs are for local implementation, backup, and code review reference only."
+
+review_constraints:
+  - "Codex review is strictly an audit-only step and does not grant merge authority to `main`."
+
+safe_workflow:
+  step_1: "Antigravity implements and tests locally."
+  step_2: "Antigravity creates a ZIP payload."
+  step_3: "AI Studio imports the ZIP, performs smoke tests, and syncs to `main`."
+  step_4: "Antigravity fetches `main` afterward to synchronize state."

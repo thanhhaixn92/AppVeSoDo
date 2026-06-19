@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Times New Roman", Times, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  /* Custom Color System for Professional Business UI */
+  --color-app-bg: #F8FAFC; /* Light gray background */
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #F1F5F9; /* Subtle gray */
+  --color-border: #E2E8F0; /* Soft border */
+  --color-text-main: #1E293B; /* Dark slate text */
+  --color-text-muted: #475569; /* Muted text */
+  --color-text-subtle: #64748B; /* Subtle text */
+  --color-header-bg: #FFFFFF; /* Light header */
+  --color-header-border: #E2E8F0;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-soft: #EFF6FF;
+  --color-accent: #0F766E;
+  --color-accent-soft: #F0FDFA;
+  --color-success: #059669;
+  --color-success-soft: #ECFDF5;
+  --color-warning: #D97706;
+  --color-warning-soft: #FFFBEB;
+  --color-danger: #DC2626;
+  --color-danger-soft: #FEF2F2;
+}
+
+:root {
+  /* Fallbacks if needed by standard CSS outside Tailwind */
+  --color-app-bg: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #F1F5F9;
+  --color-border: #E2E8F0;
+  --color-text-main: #1E293B;
+  --color-text-muted: #475569;
+  --color-text-subtle: #64748B;
+  --color-header-bg: #FFFFFF;
+  --color-header-border: #E2E8F0;
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-soft: #EFF6FF;
+  --color-accent: #0F766E;
+  --color-accent-soft: #F0FDFA;
+  --color-success: #059669;
+  --color-success-soft: #ECFDF5;
+  --color-warning: #D97706;
+  --color-warning-soft: #FFFBEB;
+  --color-danger: #DC2626;
+  --color-danger-soft: #FEF2F2;
+}
+
+html, body {
+  background-color: var(--color-app-bg);
+  color: var(--color-text-main);
+  font-family: var(--font-sans);
+}
+
+.academic-serif {
+  font-family: var(--font-serif) !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print simulation or Double-Column Layout guides */
+.double-column-guide {
+  position: relative;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 49%,
+    #e2e8f0 49%,
+    #e2e8f0 51%,
+    transparent 51%,
+    transparent 100%
+  );
+}
+
+/* Three-line table styling specifically for academic APA journals */
+.three-line-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.three-line-table th {
+  border-top: 1.5px solid #000000;
+  border-bottom: 1px solid #000000;
+  padding: 6px 12px;
+  font-weight: 600;
+}
+.three-line-table td {
+  padding: 6px 12px;
+  border: none;
+}
+.three-line-table tr:last-child td {
+  border-bottom: 1.5px solid #000000;
+}
+
+/* IEEE compact lines */
+.ieee-table th {
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+  padding: 4px 8px;
+  font-size: 0.85em;
+  text-transform: uppercase;
+}
+.ieee-table td {
+  border-bottom: 0.5px solid #eaeaea;
+  padding: 4px 8px;
+  font-size: 0.85em;
+}
+.ieee-table tr:last-child td {
+  border-bottom: 1px solid #333;
+}

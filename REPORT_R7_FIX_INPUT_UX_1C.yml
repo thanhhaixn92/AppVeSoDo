@@ -1,0 +1,44 @@
+phase: "R7-FIX-INPUT-UX-1C - Candidate Source Section & Excerpt UI"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+code_changed: true
+changed_files:
+  - "src/App.tsx"
+  - "tests/e2e/chart-workflow.spec.ts"
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: BLOCKED_BY_ENVIRONMENT
+implemented:
+  candidate_source_section_visible: true
+  candidate_source_excerpt_visible: true
+  rationale_display_preserved: true
+  no_placeholder_source_metadata: true
+  no_dangerously_set_html: true
+  test_j_section_assertion: true
+  analyzer_untouched: true
+  export_modules_untouched: true
+remaining_risks:
+  - "Playwright E2E tests are blocked by environment and require a local/external run to fully verify workflow."
+commit_created: true
+pr_created: false
+
+What Changed:
+- In `src/App.tsx`, updated the candidate card rendering to include `sourceSectionHeading` and `sourceExcerpt` metadata gracefully above the description, without interfering with the visual hierarchy. Reused generic `reason` with specific `rationale` overriding it when available.
+- In `tests/e2e/chart-workflow.spec.ts`, updated Test J to assert the existence of "Nguồn dữ liệu" and "SƠ ĐỒ QUY TRÌNH CHÍNH" on the candidate card.
+
+Candidate Provenance UI Strategy:
+- Minimalist text injection in the description block; uses a line-clamp for excerpt and italic formatting. Fallbacks natively to older generic reasons.
+
+E2E Update:
+- Added `expect(diagramCard).toContainText(...)` assertions before preview to structurally validate source tracking without layout assumptions.
+
+Commands Run:
+- `npm run lint` - Passed
+- `npm run test` - Passed 
+- `npm run build` - Passed
+
+Remaining Risks:
+- UI design may need tuning if excerpts are exceedingly long, although line-clamp mitigates this issue.

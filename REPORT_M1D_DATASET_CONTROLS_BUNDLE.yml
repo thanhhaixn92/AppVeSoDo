@@ -1,0 +1,59 @@
+report_type: "M1D_DATASET_CONTROLS_BUNDLE"
+date: "2026-06-16"
+status: "VALIDATION_PENDING"
+
+selected_features_implemented:
+  - "Chart axes label editing (xAxisLabel, yAxisLabel)"
+  - "Chart data point editing (label, value)"
+  - "Chart data point add/remove with minimum 1 point guard"
+  - "Table cell editing"
+  - "Table row add/remove with minimum 1 row guard"
+  - "UI layout for dataset editing improved (compact row presentation, add/remove buttons)"
+
+deferred_features:
+  - "Multi-series data editing / renaming (not natively supported by flat ChartDataPoint array without renderer rewrites)"
+  - "Full Excel-like grid component (too heavy, keep it simple)"
+  - "Renderer-level data transformation (out of scope for shallow M1D editing)"
+
+files_changed:
+  - "src/components/M1DLitePropertyPanel.tsx"
+  - "src/hooks/useFigureEditingWorkflow.ts"
+  - "tests/figureEditingWorkflow.test.ts"
+  
+exact_edits_per_file: "Added addDraftChartPoint, removeDraftChartPoint, addDraftTableRow, removeDraftTableRow, setDraftChartAxisLabel to useFigureEditingWorkflow.ts. Hooked these up to UI buttons and inputs in M1DLitePropertyPanel.tsx. Added unit tests for new methods in tests/figureEditingWorkflow.test.ts."
+
+feature_support:
+  chart_axis_labels_edit: "YES"
+  chart_point_label_edit: "YES"
+  chart_point_value_edit: "YES"
+  chart_add_remove_point: "YES"
+  table_cell_edit: "YES"
+  table_add_remove_row: "YES"
+  title_edit: "YES"
+  theme_edit: "YES"
+  caption_edit: "YES"
+  showLegend_preserved: "YES"
+  showLabels_preserved: "YES"
+  draft_apply_cancel_preserved: "YES"
+  sourceCandidateUid_preserved: "YES"
+
+minimum_guards:
+  min_one_chart_point: "YES"
+  min_one_table_row: "YES"
+
+app_tsx_touched: "NO"
+figure_renderer_touched: "NO"
+package_files_touched: "NO"
+export_dom_changed: "NO"
+data_export_target_changed: "NO"
+candidate_policy_changed: "NO"
+renderer_wrappers_changed: "NO"
+
+validation_results:
+  build_result: "PASS"
+  unit_test_result: "PASS"
+  missing_payload_guard_e2e_result: "PASS"
+  chart_workflow_e2e_result: "BLOCKED_BY_ENVIRONMENT"
+  full_e2e_result: "BLOCKED_BY_ENVIRONMENT"
+
+ready_for_single_ai_studio_upload: "YES"

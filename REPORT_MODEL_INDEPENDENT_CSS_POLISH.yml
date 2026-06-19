@@ -1,0 +1,26 @@
+report:
+  type: MODEL_INDEPENDENT_CSS_POLISH
+  status: SUCCESS
+  files_changed:
+    - src/index.css
+    - src/components/Header.tsx
+    - src/components/DatasetFirstCandidateList.tsx
+  edits:
+    - file: src/index.css
+      description: Lighter academic global variables (--color-app-bg changed to #F8FAFC, --color-surface and --color-header-bg to #FFFFFF, text colors softened).
+    - file: src/components/Header.tsx
+      description: Adapted text colors to fit the new light header background (text-white to text-text-main).
+    - file: src/components/DatasetFirstCandidateList.tsx
+      description: Softened background colors (bg-slate-50 to bg-surface-soft), and changed "Khuyên dùng" and "Dùng mẫu này" button classes to use the standard primary color scheme instead of heavy gradients.
+  confirmations:
+    no_product_logic_changed: true
+    no_protected_files_changed: true
+    no_export_dom_changed: true
+    no_renderer_wrapper_changed: true
+    no_data_export_target_changed: true
+  validation_results:
+    build: PASS
+    unit_test: PASS
+    e2e_missing_payload_guard: PASS
+  risks:
+    remaining: None. Changes were restricted purely to CSS tokens and inline standard Tailwind classNames.

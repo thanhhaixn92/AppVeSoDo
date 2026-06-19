@@ -1,0 +1,30 @@
+phase: "R7-FIX-INPUT-UX-1F - AI-First Analysis Contract & Structured Candidate Adapter"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+code_changed: true
+changed_files:
+  - "src/types.ts"
+  - "src/analysis/aiAnalysisContract.ts"
+  - "src/analysis/aiAnalysisAdapter.ts"
+  - "src/App.tsx"
+  - "tests/aiAnalysisContract.test.ts"
+commands:
+  lint: "PASS"
+  unit_test: "PASS - 80 tests passed"
+  build: "PASS"
+  e2e: "BLOCKED_BY_ENVIRONMENT"
+implemented:
+  ai_analysis_contract: "Đã tạo src/analysis/aiAnalysisContract.ts định nghĩa AIAnalysisInput, AIAnalysisOutput, và AISectionSummary theo chuẩn cho AI-first pipeline."
+  deterministic_ai_adapter: "Tạo src/analysis/aiAnalysisAdapter.ts đọc dữ liệu thô (rawDocumentText) và tự động tạo mô phỏng process_diagram, chart, table an toàn không bị rule framework cản."
+  raw_text_used: "Adapter sử dụng rawDocumentText lấy từ bước xử lý Input 1E để đảm bảo độ tin cậy của text đưa vào xử lý AI."
+  structured_candidates: "Candidates output được định dạng có uiStatus chuẩn ('needs_review', 'needs_mapping'), có đầy đủ data structured phù hợp (nodes/connections cho flowchart, row/col cho table)."
+  process_diagram_nodes_edges: "Function extractProcessDiagram tạo nodes/edges/caption map thẳng vào shape của DiagramModel trong src/types.ts. Node connection đã được gán theo sequence steps."
+  candidate_provenance: "Mỗi candidate mang đầy đủ các trường thông tin rationale, sourceSectionHeading, confidence và đoạn excerpt liên đới."
+  candidate_status_not_all_not_ready: "Khi run AI adapter, candidates được đặt uiStatus là needs_review. Nếu không parsing được detail, fallback candidate sẽ gán needs_mapping, giúp thoát khỏi tình trạng rules đè hết xuống not_ready."
+  rule_failure_does_not_block_ai: "Candidates từ AI được gán thẳng vào visualCandidates với priority cao, đồng bộ chung với mảng Rule candidates mà không chịu ảnh hưởng từ validation failure của local rules."
+  firebase_untouched: "Đảm bảo chưa khởi tạo, đọc/ghi hay cài đặt Firebase theo đúng policy phase này."
+  export_modules_untouched: "Không can thiệp đến render hoặc Latex/Svg export logics."
+remaining_risks: "AI logic hiện tại là deterministic regex block/mock parsing dùng string manipulation. Cần thay bằng endpoint call sau khi thiết kế xong backend logic AI analysis API. Workflow test UI chỉ verify function mapping nhưng e2e bị block, cần manual test."
+commit_created: false
+pr_created: false

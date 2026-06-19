@@ -1,0 +1,35 @@
+phase: "R7-FIX-4E-NATIVE-DIAGRAM - Native SVG Diagram Text & Edge Fidelity"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+branch: "work"
+code_changed: true
+changed_files:
+  - "src/components/FigureRenderer.tsx"
+  - "src/lib/workflowUtils.ts"
+  - "tests/exportFigureSvg.test.ts"
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: BLOCKED_BY_ENVIRONMENT
+implemented:
+  native_svg_text: true
+  text_wrapping: true
+  vietnamese_preserved: true
+  no_foreign_object: true
+  scoped_marker_ids: true
+  arrow_end_respected: true
+  line_styles_preserved: true
+  connection_labels: true
+  basic_shape_mapping: true
+  diagram_svg_still_disabled: true
+  table_svg_still_disabled: true
+  chart_svg_still_enabled: true
+  pdf_png_latex_untouched: true
+  server_ai_untouched: true
+remaining_risks:
+  - "Text wrapping currently relies on a fixed characters-per-line estimation instead of real DOM measurement, which might overflow slightly with very wide characters."
+  - "Playwright E2E tests are blocked by missing Chromium executable in the cloud Sandbox."
+commit_created: false
+pr_created: false

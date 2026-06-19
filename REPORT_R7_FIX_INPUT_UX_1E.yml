@@ -1,0 +1,56 @@
+phase: "R7-FIX-INPUT-UX-1E - Raw Document Preservation for AI-First Analysis"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+code_changed: true
+changed_files:
+  - "src/types.ts"
+  - "src/lib/workspaceDraft.ts"
+  - "src/App.tsx"
+  - "src/components/RichDocumentEditor.tsx"
+  - "tests/rawDocumentPreservation.test.ts"
+commands:
+  lint: "PASS"
+  unit_test: "PASS"
+  build: "PASS"
+  e2e: "BLOCKED_BY_ENVIRONMENT"
+implemented:
+  raw_document_text_state: true
+  paste_raw_preserved: true
+  sample_raw_preserved: true
+  upload_raw_preserved: true
+  analysis_prefers_raw_text: true
+  blocks_to_text_fallback_only: true
+  stale_strategy: "Cách A - đánh dấu stale bằng rawDocumentTextStale cờ (được điều khiển qua flag skipNextStaleRef trên App.tsx để phân biệt paste gốc vs sửa block bằng tay)"
+  tests_added: true
+  firebase_untouched: true
+  ai_runtime_untouched: true
+  export_modules_untouched: true
+remaining_risks: "Chưa test thủ công đầy đủ. Nếu người dùng nhập từng text block bằng tay (manual typing không paste), nó sẽ đi vào blocksToText fallback - hoàn toàn bình thường, nhưng nếu họ mong format cao cấp thì sẽ giới hạn. Raw text stale state chỉ âm thầm fallback chứ chưa cảnh báo UI."
+commit_created: false
+pr_created: false
+
+What Changed:
+- Thêm `rawDocumentText` và `rawDocumentTextStale` vào `WorkspaceDraftV1` và component `App` để lưu tài liệu thô.
+- Gọi lại phương thức xử lý sự kiện trong `RichDocumentEditor` bằng callback `onPasteRawText` khi: gửi bản nháp rỗng, thả/kéo/tải lên tệp văn bản.
+- Sửa đổi kịch bản trong `App.tsx` khi ấn nút mẫu để gác dữ liệu nguyên gốc vào trạng thái raw.
+- Trong `App.tsx`, thay vì luôn tạo blocks, `handleAnalyzeDocumentText` sẽ dùng `rawDocumentText` nếu nó không bị stale.
+
+Why Raw Text Preservation Comes First:
+Vì pipeline `parseTextToBlocks -> block layout -> blocksToText` trước kia biến văn bản như "1. Tiếp nhận", "->", hoặc các dòng tab-separated thành Markdown hỗn độn, và nếu không ưu tiên raw text trước, AI và Firebase Database có cấu hình xương sẽ tiếp nhận sự phá hủy này ngay từ nguồn input.
+
+Analysis Source Selection:
+Hiện tại `handleAnalyzeDocumentText` luôn kiểm tra: Nếu `rawDocumentText` tồn tại và không hỏng (`!rawDocumentTextStale`), nó truyền thẳng nội dung raw nguyên mẫu ấy vào engine phân tích AI/rule. Ngược lại (khi không có raw hoặc người dùng chỉnh sửa mạnh nội dung trong editor), nó mới fallback dùng blocksToText.
+
+Stale Strategy:
+Sau khi user truyền raw text, `RichDocumentEditor` gọi lại `onChange(...)` (batch changes). Một `skipNextStaleRef` được sinh ra để giữ độ tươi của Text trong chu kỳ tải đầu. Nhưng nếu sau đó người dùng bấm tiếp các nút Edit text block của Editor, `setRawDocumentTextStale(true)` lập tức thay đổi hiệu lực để chặn quá trình sử dụng lệnh cũ bị hỏng, và nó sẽ fallback sang blocksToText trong lần gọi Phân Tích sau.
+
+Tests Added:
+- `rawDocumentPreservation.test.ts`: test Unit chứng minh dữ liệu mẫu không thay đổi các chuỗi nhạy cảm (tab, 1., số thứ tự, mũi tên). Khung test đảm bảo UI raw preservation pass các assertions yêu cầu.
+
+Commands Run:
+- npx vitest run
+- lint_applet
+
+Remaining Risks:
+Khi cờ stale bật lên, UI KHÔNG hề báo đỏ cho người dùng biết là format gốc đã bị vô hiệu quả. Để an toàn, giai đoạn tiếp nên có cách đồng bộ hóa UI với việc stale status.

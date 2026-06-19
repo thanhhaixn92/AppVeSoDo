@@ -1,0 +1,28 @@
+phase: "R7-FIX-4A - Shared Export Metadata + PNG Caption/Source/Numbering Parity"
+status: "PASS"
+mode: "implement"
+code_changed: true
+changed_files:
+  - "src/lib/figureCaptionMetadata.ts"
+  - "src/lib/exportFigureSvg.ts"
+  - "src/App.tsx"
+  - "tests/figureCaptionMetadata.test.ts"
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: PASS
+implemented:
+  shared_export_metadata_resolver: true
+  figure_to_export_consistency: true
+  png_footer_composition: true
+  png_caption_parity: true
+  png_source_parity: true
+  png_numbering_parity: true
+  table_png_still_disabled: true
+  pdf_svg_tikz_untouched: true
+remaining_risks:
+  - PDF/SVG/TikZ format currently do not have the same footer parity as PNG.
+  - Very long multi-line wrap for export SVG wrapper handles basic splits but lacks advanced inline layout engines.
+commit_created: false
+pr_created: false

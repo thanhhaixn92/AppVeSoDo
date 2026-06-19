@@ -1,0 +1,103 @@
+risks:
+  - id: "RISK-001"
+    title: "E2E unverified due to Chromium install block"
+    severity: "medium"
+    status: "open"
+    mitigation:
+      - "Run E2E locally or in GitHub Actions with Playwright cache."
+      - "Latest M1C attempt remained BLOCKED_BY_ENVIRONMENT due to Playwright CDN HTTP 403."
+
+  - id: "RISK-002"
+    title: "App.tsx still owns candidate/analysis/canvas/export orchestration"
+    severity: "high"
+    status: "mitigated_by_m1b2"
+    mitigation:
+      - "M1B-2 extracted useCandidateWorkflow."
+      - "setPreviewFigure exposed from useCandidateWorkflow should be watched in M1C/UI phase."
+
+  - id: "RISK-003"
+    title: "Export depends on DOM contract"
+    severity: "high"
+    status: "deferred"
+    mitigation:
+      - "Freeze export until explicitly scoped in M4 or a dedicated export task."
+
+  - id: "RISK-004"
+    title: "Agent may misinterpret candidate generation as final product output"
+    severity: "high"
+    status: "mitigated_by_harness_v1.1.1"
+    mitigation:
+      - "Update product-profile.md to define full Academic Figure Creator pipeline."
+      - "Update AGENTS.md and R7-M1B-2 task/prompt to state that product goal clarification does not expand M1B-2 scope."
+      - "Start product pipeline work after M1B-2, beginning with M1C candidate-to-renderable/template adapter boundary."
+
+  - id: "RISK-005"
+    title: "Product goal clarification could cause scope creep in R7-M1B-2"
+    severity: "high"
+    status: "open"
+    mitigation:
+      - "R7-M1B-2 remains limited to extracting candidate workflow from App.tsx into useCandidateWorkflow."
+      - "Do not implement template engine, properties panel, AI chat editing, persistence, or export changes in R7-M1B-2."
+      - "Audit final diff against .agent/tasks/R7-M1B-2.yml and protected-areas.md."
+
+  - id: "RISK-006"
+    title: "RenderableFigurePayload matching payload is enforced at runtime, not at type level"
+    severity: "low"
+    status: "open"
+    mitigation:
+      - "Use adaptCandidateToRenderable as the candidate-to-renderable boundary."
+      - "Keep adapter regression tests for missing and mismatched payload rejection."
+      - "Consider a discriminated union only in a separately scoped low-churn type-hardening task."
+
+  - id: "RISK-M1D-001"
+    title: "Direct figure editing can create invalid renderer/export inputs"
+    severity: "high"
+    status: "open"
+    mitigation:
+      - "Edit a deep-cloned draft and validate before apply."
+      - "Block invalid drafts instead of committing warning-only updates."
+
+  - id: "RISK-M1D-002"
+    title: "M1D editing policy could make App.tsx grow again"
+    severity: "high"
+    status: "open"
+    mitigation:
+      - "Keep App.tsx limited to orchestration wiring."
+      - "Own draft, validation, dirty state, apply, and cancel in useFigureEditingWorkflow."
+
+  - id: "RISK-M1D-003"
+    title: "Existing PropertyPanel uses broad any-style direct updates"
+    severity: "medium"
+    status: "open"
+    mitigation:
+      - "Prefer a narrowly scoped typed M1D-Lite panel."
+      - "Do not broadly refactor the existing PropertyPanel in M1D-Lite."
+
+  - id: "RISK-M1D-004"
+    title: "M1D E2E remains blocked by environment"
+    severity: "medium"
+    status: "open"
+    mitigation:
+      - "Report BLOCKED_BY_ENVIRONMENT when Playwright CDN HTTP 403 prevents Chromium installation."
+
+  - id: "RISK-M1D-005"
+    title: "Broad PropertyPanel was replaced by M1DLitePropertyPanel"
+    severity: "medium"
+    status: "ACCEPTED_TEMPORARY_LIMITATION"
+    mitigation:
+      - "Human confirmation completed. M1D-LITE accepted as temporary product surface."
+
+  - id: "RISK-M1D-006"
+    title: "Same-identity external figure updates do not auto-refresh an existing draft"
+    severity: "medium"
+    status: "resolved"
+    mitigation:
+      - "Corrective applied: clean drafts refresh automatically without silently overwriting dirty drafts."
+
+  - id: "RISK-M1_5-001"
+    title: "VisualCandidate conflates dataset, type, renderable payload, and provenance"
+    severity: "high"
+    status: "open"
+    mitigation:
+      - "M1.5 Dataset-first model migration."
+      - "Separate DatasetCandidate from FigureTypeOption and RenderableFigure."

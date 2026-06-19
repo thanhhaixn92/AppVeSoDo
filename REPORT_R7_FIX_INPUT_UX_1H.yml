@@ -1,0 +1,26 @@
+phase: "R7-FIX-INPUT-UX-1H - Candidate Status UI & Ready Count Fix"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+code_changed: true
+changed_files:
+  - "src/types.ts"
+  - "src/App.tsx"
+commands:
+  lint: "PASS"
+  unit_test: "PASS - 77 tests passed"
+  build: "PASS"
+  e2e: "BLOCKED_BY_ENVIRONMENT"
+implemented:
+  candidate_status_normalization: "Đã thêm helper getCandidateStatus trong App.tsx mapping thành 4 trạng thái (ready, needs_review, needs_mapping, not_ready) dựa vào dataCompleteness, validationError, userReviewRequired. Tránh chèn ép logic vào validation cũ để giữ nguyên sức mạnh validation hiện tại."
+  detected_count_label: "Đã thay đổi hiển thị số candidate ở header thành 'đề xuất được phát hiện'"
+  ready_count_fixed: "Chỉ hiển thị con số sẵn sàng dùng ở khu vực Sẵn sàng."
+  candidate_grouping_by_status: "Nhóm candidate UI của màn Hình bản vẽ (drawings) thành 4 cụm: Sẵn sàng dùng, Cần xem lại, Cần chọn dữ liệu, Chưa đủ dữ liệu, với các chỉ dẫn và empty message tự động."
+  no_ready_count_mismatch: "Loại bỏ hoàn toàn sự mâu thuẫn báo Sẵn sàng trong khi candidate đang lỗi validation."
+  source_ui_preserved: "Box nguồn (Source Section/Excerpt/Rationale) ở các candidate card vẫn được giữ nguyên vẹn và hiển thị đúng như thiết kế."
+  firebase_untouched: "Tuyệt đối không đụng đến cấu hình Firebase, config, database init."
+  ai_runtime_untouched: "Không đụng chạm code fetch/run OpenAI/Gemini workflow."
+  export_modules_untouched: "Không can thiệp đến SVG/Latex render tools."
+remaining_risks: "Hầu hết các logic test UI phụ thuộc vào Playwright. Playwright bị Blocked by environment nên không test trực tiếp workflow đầy đủ trên browser được. Cần manual QA trước khi nhảy sang 1I hoặc bắt đầu gắn Firebase."
+commit_created: false
+pr_created: false

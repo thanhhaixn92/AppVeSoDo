@@ -1,0 +1,130 @@
+# File ownership is stable project knowledge.
+# It is not a temporary lock. Temporary locks belong in .agent/context/file-locks.yml.
+
+ownership:
+  src/App.tsx:
+    owner_domain: "app_orchestration"
+    role: "Main orchestration shell; should not accumulate domain policy."
+    write_requires:
+      - "explicit task scope"
+      - "smallest safe change"
+      - "post-change audit"
+    high_risk: true
+    m1d_lite_access: "minimal orchestration wiring only"
+
+  src/hooks/useFigureEditingWorkflow.ts:
+    owner_domain: "figure_editing_workflow"
+    role: "Owns deep-cloned figure draft, dirty/validation state, and apply/cancel behavior."
+    status: "M1D-LITE AUDIT_PASS"
+    write_requires:
+      - "M1D-LITE task scope"
+      - "figure editing workflow targeted tests"
+    protected_after: "M1D-LITE"
+
+  src/components/M1DLitePropertyPanel.tsx:
+    owner_domain: "figure_editing_ui"
+    role: "Minimal typed title and existing payload text/value editing controls."
+    status: "M1D-LITE AUDIT_PASS"
+    write_requires:
+      - "M1D-LITE task scope"
+      - "no renderer/export DOM changes"
+    protected_after: "M1D-LITE"
+
+  src/hooks/useDocumentWorkflow.ts:
+    owner_domain: "document_workflow"
+    role: "Owns raw text, document blocks, paste/import/sample/reset/restore, stale state, and analysis input selection."
+    status: "M1B-1 AUDIT_PASS"
+    write_requires:
+      - "document workflow scope"
+      - "documentWorkflow regression tests"
+    protected_after: "M1B-1"
+
+  src/hooks/useCandidateWorkflow.ts:
+    owner_domain: "candidate_workflow"
+    role: "Target hook for M1B-2 candidate workflow state and handlers."
+    status: "M1B-2 AUDIT_PASS"
+    write_requires:
+      - "R7-M1B-2 scope"
+      - "candidateModel regression tests"
+
+  src/analysis/candidateToRenderableAdapter.ts:
+    owner_domain: "candidate_to_renderable_adapter"
+    role: "Normalizes candidates into renderable figure payloads."
+    status: "M1C AUDIT_PASS"
+    write_requires:
+      - "M1C task scope"
+      - "adapter targeted tests"
+    protected_after: "M1C"
+    m1d_lite_access: "read-only"
+      
+  src/types.ts:
+    owner_domain: "types"
+    role: "Shared types including RenderableFigurePayload area."
+    write_requires:
+      - "explicit task scope"
+
+  src/analysis/candidateModel.ts:
+    owner_domain: "candidate_model"
+    role: "Single source of truth for candidate UI status, preview/apply/usability policy, stable IDs, dedupe, and metadata preservation."
+    status: "M1A AUDIT_PASS"
+    write_requires:
+      - "explicit candidate model policy scope"
+      - "architecture/audit approval"
+    protected_after: "M1A"
+    m1d_lite_access: "read-only"
+
+  src/analysis/candidateNormalizer.ts:
+    owner_domain: "candidate_model"
+    role: "Normalizes candidates before policy and UI handling."
+    write_requires:
+      - "candidate model or candidate workflow scope"
+      - "candidateModel regression tests"
+
+  src/lib/workflowUtils.ts:
+    owner_domain: "workflow_shared_utils"
+    role: "Shared helpers used by workflow/model code."
+    write_requires:
+      - "explicit task scope"
+      - "targeted tests for any behavior change"
+
+  tests/candidateModel.test.ts:
+    owner_domain: "candidate_model_tests"
+    role: "Regression coverage for candidate policy and model behavior."
+    write_requires:
+      - "only to add/update legitimate behavior coverage"
+      - "never to hide failures"
+
+  tests/documentWorkflow.test.ts:
+    owner_domain: "document_workflow_tests"
+    role: "Regression coverage for raw preservation and document workflow behavior."
+    write_requires:
+      - "document workflow scope"
+      - "never to hide failures"
+
+protected_domains:
+  export_renderer:
+    files_or_patterns:
+      - "export/**"
+      - "renderer/**"
+      - "**/*export*"
+    protected_reason: "Export depends on DOM contract and is frozen until M1C."
+    m1d_lite_access: "read-only"
+
+  m1d_lite_read_only:
+    files_or_patterns:
+      - "src/components/FigureRenderer.tsx"
+      - "src/hooks/useCandidateWorkflow.ts"
+      - "src/hooks/useDocumentWorkflow.ts"
+      - "src/analysis/candidateToRenderableAdapter.ts"
+      - "src/analysis/candidateModel.ts"
+      - "src/components/CommandEditor.tsx"
+    protected_reason: "M1D-Lite must not alter renderer/export, candidate, document, or AI chat boundaries."
+
+  backend_auth_ai_dependencies:
+    files_or_patterns:
+      - "server.ts"
+      - "firebase/**"
+      - "auth/**"
+      - "package.json"
+      - "package-lock.json"
+    protected_reason: "Server, Firebase, auth, real AI, and dependency changes require explicit user approval."

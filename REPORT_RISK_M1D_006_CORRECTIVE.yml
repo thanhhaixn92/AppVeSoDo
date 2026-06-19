@@ -1,0 +1,46 @@
+task_id: "RISK-M1D-006_CORRECTIVE"
+task_name: "Fix same-identity external active figure updates not refreshing editable draft"
+mode: "targeted_corrective"
+branch: "codex/risk-m1d-006-corrective"
+base_commit: "c41938c"
+
+files_changed:
+  - "src/hooks/useFigureEditingWorkflow.ts"
+  - "tests/figureEditingWorkflow.test.ts"
+  - ".agent/context/risk-register.yml"
+  - ".agent/context/project-state.yml"
+  - ".agent/context/issue-memory.yml"
+  - "REPORT_RISK_M1D_006_CORRECTIVE.yml"
+
+forbidden_files_check:
+  src_components_touched: false
+  firebase_auth_touched: false
+  server_touched: false
+  package_json_touched: false
+  real_ai_runtime_touched: false
+
+root_cause:
+  - "The useFigureEditingWorkflow hook previously relied exclusively on figureKey (ID or candidate UID) in its dependency array to refresh the internal draft."
+  - "Consequently, any external updates to the active figure that preserved its identity were ignored."
+
+corrective_summary:
+  - "Refactored the core useEffect to explicitly diff both figureKey (identity change) and activeFigure reference (property change)."
+  - "When the identity changes, the draft unconditionally resets."
+  - "When properties change but the identity is unchanged, the draft syncs ONLY if it is not currently dirty, preserving user edits."
+
+tests_added_updated:
+  - "Updated renderEditingWorkflow helper to support an explicit rerender() method for simulating prop updates."
+  - "Added test: 'clean draft refreshes when external same-identity active figure changes'"
+  - "Added test: 'dirty draft is not silently overwritten by external same-identity active figure changes'"
+  - "Added test: 'completely different active figure resets the draft even if dirty'"
+
+validation_results:
+  lint: "NOT_RUN"
+  build: "NOT_RUN"
+  unit_test: "PASS (npm test -- figureEditingWorkflow: 17 passed)"
+  e2e: "NOT_RUN"
+
+remaining_risks:
+  - "RISK-M1_5-001: VisualCandidate conflates dataset, type, renderable payload, and provenance."
+
+next_task_recommendation: "M1.5_DATASET_FIRST_MODEL_MIGRATION"

@@ -1,0 +1,76 @@
+prompt_id: "AFC-AISTUDIO-R6F-AI-STATUS-STATE-MACHINE-FIX"
+
+phase: "R6F - AI Service Status State Machine Fix + Verified Repackage"
+status: "PASS"
+
+baseline:
+  lint: pass
+  build: pass
+  test: pass
+
+changed_files:
+  - "src/App.tsx"
+
+state_model:
+  initial_state: "unknown"
+  available_requires_remote_success: true
+  safe_unknown_default: true
+  active_only_for_available: true
+  default_active_removed: true
+
+fix_summary:
+  helper_exhaustive: true
+  unknown_non_active: true
+  rule_based_non_active: true
+  unavailable_non_active: true
+  quota_limited_non_active: true
+  error_non_active: true
+  handleSaveApiKey_no_longer_sets_available: true
+  analysis_failures_update_status: true
+  command_failures_update_status: true
+  remote_ai_guarded_when_non_active: true
+  rule_based_flow_preserved: true
+  fake_success_added: false
+  auto_apply_added: false
+
+tests:
+  added_or_updated: false
+  files: []
+  coverage:
+    - "AI badge labels"
+    - "unknown/default non-active"
+    - "save key does not imply available"
+    - "failure paths non-active"
+
+verification:
+  lint: pass
+  build: pass
+  test: pass
+  source_scan_pass: true
+  runtime_checked: false
+  runtime_not_verified: true
+
+package:
+  created: true
+  filename: "academic-figure-creator_R6F_ai_status_fixed_aistudio_preview.zip"
+  unzip_test: pass
+  sha256: "e200cce63b932002eb533b20585902ca486e37ea73f677921d5e69ceb715c2a7"
+  old_corrupt_zip_excluded: true
+  included_server_ts: true
+  included_handoff: true
+  excluded_node_modules: true
+  excluded_dist: true
+  excluded_env: true
+
+scope_control:
+  property_chain_modified: false
+  export_target_modified: false
+  quality_chain_modified: false
+  workflow_stepper_modified: false
+  refactor_performed: false
+
+final_decision:
+  ready_to_upload_aistudio: true
+  ready_for_manual_runtime_check: true
+  needs_followup_fix: false
+  sync_to_github_main_recommended: false

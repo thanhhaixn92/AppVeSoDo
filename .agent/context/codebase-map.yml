@@ -1,0 +1,75 @@
+project: "SO DO APP / Academic Figure Creator"
+
+entrypoints:
+  app:
+    path: "src/App.tsx"
+    role: "Main orchestration shell; still owns candidate, analysis, canvas, export orchestration."
+    avoid_full_rewrite: true
+
+domains:
+  document_workflow:
+    owner: "src/hooks/useDocumentWorkflow.ts"
+    related:
+      - "src/components/RichDocumentEditor.tsx"
+      - "src/lib/workspaceDraft.ts"
+      - "tests/documentWorkflow.test.ts"
+    responsibilities:
+      - "rawDocumentText"
+      - "rawDocumentTextStale"
+      - "documentBlocks"
+      - "paste/import/sample/reset/restore"
+      - "analysis input selection"
+    status: "M1B-1 AUDIT_PASS"
+    do_not_duplicate_in_app: true
+
+  candidate_model:
+    owner: "src/analysis/candidateModel.ts"
+    related:
+      - "src/analysis/candidateNormalizer.ts"
+      - "src/lib/workflowUtils.ts"
+      - "tests/candidateModel.test.ts"
+    responsibilities:
+      - "CandidateUiStatus"
+      - "preview/apply/usability policy"
+      - "stable deterministic IDs"
+      - "dedupe preserving metadata"
+    status: "M1A AUDIT_PASS"
+    do_not_duplicate_policy: true
+
+  analysis_engine:
+    owner: "src/analysis/"
+    related:
+      - "src/analysis/ruleAnalyzer.ts"
+      - "src/analysis/aiAnalysisAdapter.ts"
+      - "src/analysis/aiAnalysisContract.ts"
+    status: "NOT_EXTRACTED"
+    warning: "Rule analyzer remains large and should move toward observer/validation later."
+
+  preview_export:
+    owner: "renderer/export modules"
+    status: "FROZEN_UNTIL_M1C (Now M1C boundary established)"
+    protected:
+      - "data-export-target"
+      - "renderer DOM wrappers"
+      - "SVG/PDF export behavior"
+
+  candidate_to_renderable_adapter:
+    owner: "src/analysis/candidateToRenderableAdapter.ts"
+    related:
+      - "src/types.ts"
+      - "src/lib/workflowUtils.ts"
+    status: "M1C AUDIT_PASS"
+
+  figure_editing:
+    owner: "src/hooks/useFigureEditingWorkflow.ts"
+    related:
+      - "src/components/M1DLitePropertyPanel.tsx"
+    status: "M1D-LITE AUDIT_PASS"
+
+  command_proposal:
+    owner: "src/components/CommandEditor.tsx"
+    related:
+      - "src/hooks/useCommandProposalActions.ts"
+      - "src/analysis/ruleCommandParser.ts"
+    status: "SKELETON_ONLY"
+    warning: "M1E remains NOT_STARTED."

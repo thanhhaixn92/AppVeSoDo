@@ -1,0 +1,59 @@
+task_id: "GEMINI_API_CALL_FORENSIC_AUDIT"
+mode: "forensic_audit_only_no_code_changes"
+branch: "antigravity/ai-analysis-request-safety-guard"
+commit: "66e92ba"
+
+files_inspected:
+  - "server.ts"
+  - "src/analysis/aiAnalyzer.ts"
+  - "src/hooks/useCandidateWorkflow.ts"
+  - "App.tsx"
+
+exact_request_path:
+  1: "User clicks 'Phân tích' -> handleAnalyzeDocumentText in useCandidateWorkflow.ts"
+  2: "Calls runAIAnalysis in aiAnalyzer.ts"
+  3: "POSTs to /api/gemini/extract-candidates"
+  4: "server.ts route handler rateLimiter allows up to 30 requests/min"
+  5: "callGeminiWithFallback is invoked"
+  6: "Gemini SDK models.generateContent is called"
+
+exact_config_resolution_path:
+  GEMINI_API_KEY: "Read by server.ts:getAi() line 62. If missing, it falls back to GEMINI_PRIMARY."
+  GEMINI_PRIMARY_MODEL: "Read by server.ts line 15. The prompt says user set GEMINI_PRIMARY=gemini-2.5-flash-lite. If the user set GEMINI_PRIMARY instead of GEMINI_PRIMARY_MODEL, getAi() might read it as the API key. However, since a 429 RESOURCE_EXHAUSTED is returned rather than 400 API_KEY_INVALID, a valid API key must be present (likely injected by AI Studio's built-in key manager)."
+  GEMINI_FALLBACK_MODEL: "Read by server.ts line 16. Same logic."
+
+request_count_analysis:
+  - "Does one click make exactly one fetch? Yes, guarded by inFlightAnalysisRef.current."
+  - "Is there any auto-trigger? No, only explicit user clicks in App.tsx."
+  - "Is the Analyze button disabled while isAnalyzing? Yes, via isGenerating passed to RichDocumentEditor."
+  - "Can repeated clicks after a failed request call the API again immediately? YES! Because the frontend doesn't recognize the proxy's 200 HTML as a quota error, it does not set the 60-second client-side cooldown."
+
+server_http_status_analysis:
+  - "Does /api/gemini/extract-candidates return HTTP 200 for structured AI errors? No, it returns 503 (or 500)."
+  - "If Gemini returns 429, what HTTP status does the app return to frontend? 503."
+  - "Why does console show non-JSON 200? Because the AI Studio Cloud Proxy intercepts the 503 response from the backend and rewrites it to a generic HTML error page with an HTTP 200 status code."
+  - "Is this a transport-status bug? Yes, it's a proxy interception issue."
+
+fallback_behavior_analysis:
+  - "When Gemini primary returns 429, is fallback skipped? Yes, handled by isQuotaError in the previous corrective."
+
+same_model_fallback_analysis:
+  - "If primary and fallback are identical, is fallback skipped for non-quota errors? No. If a 503/500 error occurs, it will retry the identical model, wasting time and potentially resources."
+
+explanation_for_429: "The AI Studio proxy replaces the backend's 503 error with a 200 HTML page. The frontend sees a non-JSON 200 response, logs the warning, and returns 'AI_ROUTE_NON_JSON_RESPONSE'. Because this does not match the frontend's quota error strings, the 60-second cooldown is never activated. The user can click 'Phân tích' again immediately. The Gemini free tier limit is 15 requests per minute, but the server.ts rate limiter allows 30 requests per minute. Thus, the user can easily hit the 15 RPM Gemini limit manually by clicking repeatedly."
+
+definitely_quota_or_not: "It is DEFINITELY a real quota error from Gemini (specifically the 15 requests per minute free-tier limit), but exacerbated by a transport-status bug hiding the cooldown trigger from the frontend."
+
+remaining_uncertainty: "Whether the user mapped their API key to the correct environment variable. The system clearly has a valid key (hence 429 instead of 400), but the variable mappings might be confusing."
+
+recommended_minimal_corrective_tasks:
+  - "Update server.ts to return HTTP 429 instead of 503 for quota errors, as proxies are less likely to intercept 429."
+  - "Update useCandidateWorkflow.ts to trigger the 60-second cooldown when 'AI_ROUTE_NON_JSON_RESPONSE' occurs."
+  - "Update server.ts to explicitly skip fallback if GEMINI_PRIMARY_MODEL === GEMINI_FALLBACK_MODEL."
+  - "Lower the server.ts rate limiter MAX_REQUESTS_PER_WINDOW from 30 to 15 to match the Gemini free tier."
+
+build_test_results:
+  npm_run_build: "PASS"
+  npm_test_aiAnalyzer: "PASS"
+
+final_status: "FOUND_SERVER_STATUS_BUG"

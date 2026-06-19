@@ -1,0 +1,33 @@
+report:
+  type: M1_5_USABLE_CHECKPOINT
+  status: SUCCESS
+  governance_commit: 3a98fbd
+  implementation_commit: 7f23a3a
+  files_changed:
+    - src/types.ts
+    - src/analysis/candidateToRenderableAdapter.ts
+  edits:
+    - file: src/types.ts
+      description: "Added DatasetProvenance and FigureRecommendation type aliases."
+    - file: src/analysis/candidateToRenderableAdapter.ts
+      description: "Updated adaptCandidateToRenderable signature to accept new dataset-first types."
+  runtime_behavior_changed: "NO"
+  candidate_policy_changed: "NO"
+  adapter_behavior_changed: "NO"
+  workflow_behavior_changed: "NO"
+  export_dom_changed: "NO"
+  data_export_target_changed: "NO"
+  renderer_wrappers_changed: "NO"
+  protected_files_touched: "NO"
+  app_tsx_touched: "NO"
+  figure_renderer_touched: "NO"
+  package_files_touched: "NO"
+  validation_results:
+    build: "PASS"
+    unit_test: "PASS"
+    missing_payload_guard_e2e: "PASS"
+    chart_workflow_e2e: "PASS"
+    full_e2e: "BLOCKED_BY_ENVIRONMENT (net::ERR_CONNECTION_REFUSED at http://localhost:3000/ due to concurrent execution)"
+  risks:
+    remaining: "None. Basic data structures are introduced behind the adapter without altering behavior."
+  checkpoint_ready_for_single_zip: "YES"

@@ -1,0 +1,33 @@
+phase: "R7-FIX-4D-CHART-SVG - Chart SVG Academic Export Parity Only"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+branch: "work"
+code_changed: true
+changed_files:
+  - "src/App.tsx"
+  - "src/lib/exportFigureSvg.ts"
+  - "src/lib/workflowUtils.ts"
+  - "tests/exportFigureSvg.test.ts"
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: BLOCKED_BY_ENVIRONMENT
+implemented:
+  build_academic_export_svg: true
+  png_behavior_preserved: true
+  chart_svg_uses_resolved_metadata: true
+  chart_svg_caption_source_numbering: true
+  chart_svg_xml_escape: true
+  chart_svg_enabled: true
+  diagram_svg_disabled: true
+  table_svg_disabled: true
+  tikz_latex_disabled: true
+  pdf_untouched: true
+  server_ai_untouched: true
+remaining_risks:
+  - Playwright E2E tests could not be run because the audit environment lacks headless chromium. Manual QA functionality review needed.
+  - Diagram and Table SVGs remain explicitly disabled until SVG exporters specifically supporting them are built and verified.
+commit_created: false
+pr_created: false

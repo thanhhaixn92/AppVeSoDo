@@ -1,0 +1,30 @@
+phase: "R7-FIX-4B-PDF - Fix ExportModal Type Gate + PDF Caption/Source/Numbering Parity"
+status: "PASS"
+mode: "implement"
+code_changed: true
+changed_files:
+  - "src/App.tsx"
+  - "src/components/ExportModal.tsx"
+  - "src/lib/figureCaptionMetadata.ts"
+  - "src/academicArchitecture.ts"
+  - "tests/figureCaptionMetadata.test.ts"
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: BLOCKED_BY_ENVIRONMENT
+implemented:
+  export_modal_type_gate_fixed: true
+  pdf_uses_resolved_metadata: true
+  pdf_caption_once: true
+  pdf_source_conditional: true
+  pdf_html_escape: true
+  preview_no_final_ordinal: true
+  saved_order_numbering: true
+  svg_tikz_latex_untouched: true
+  table_png_svg_untouched: true
+remaining_risks:
+  - Playwright E2E tests are blocked by the control plane environment and could not be successfully executed. Functionality depends on manual QA.
+  - PDF logic correctly escapes HTML strings but could be vulnerable to deeply nested XSS if model output incorporates raw object payloads inside captions, though current `escapeHtmlText` provides standard safety limits.
+commit_created: false
+pr_created: false

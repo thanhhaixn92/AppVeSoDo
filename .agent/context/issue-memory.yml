@@ -1,0 +1,152 @@
+issues:
+  - id: "ISSUE-M1A-001"
+    title: "needs_mapping bypassed preview/apply"
+    severity: "P0"
+    found_in: "R7-M1A-POST-IMPLEMENT-AUDIT"
+    status: "FIXED_AND_AUDIT_PASS"
+    symptoms:
+      - "UI used condition !== 'not_ready'."
+      - "Preview/apply handlers did not call candidateModel policy helpers."
+    fix:
+      - "Use isCandidateUsable, isCandidatePreviewable, isCandidateApplicable."
+      - "Add defense-in-depth in preview/saved builders."
+    tests:
+      - "tests/candidateModel.test.ts"
+    regression_watch:
+      - "Do not reintroduce condition !== 'not_ready'."
+
+  - id: "ISSUE-M1B1-001"
+    title: "RichDocumentEditor bypassed raw preservation boundary"
+    severity: "P0"
+    found_in: "R7-M1B-1-POST-AUDIT"
+    status: "FIXED_AND_AUDIT_PASS"
+    symptoms:
+      - "HTML/structured paste called only onChange."
+      - "Import flow appended blocks while raw contained imported file only."
+    fix:
+      - "Delegate paste/import through useDocumentWorkflow insertion boundary."
+      - "Replace/merge modes keep raw and blocks consistent."
+    tests:
+      - "tests/documentWorkflow.test.ts"
+    regression_watch:
+      - "No block update path should bypass raw/stale strategy."
+
+  - id: "ISSUE-M1C-001"
+    title: "Clicking 'DÙNG MẪU NÀY' opened Canvas but showed empty canvas"
+    severity: "P1"
+    found_in: "M1C_QA"
+    status: "FIXED_AND_AUDIT_PASS"
+    symptoms:
+      - "Preview flow cleared selection and navigated to canvas before PreviewFigure was built and validated."
+      - "Strict M1C adapter validation exposed this ordering bug, resulting in an empty canvas."
+    fix:
+      - "Build and validate preview figure before navigation and clearing selection."
+      - "Failed preview/apply keeps active selection and shows a recoverable error."
+      - "Successful apply calls onCandidateApplied before clearing preview."
+    tests:
+      - "tests/candidateToRenderableAdapter.test.ts"
+      - "Manual QA PASS"
+    regression_watch:
+      - "Do not clear selection or navigate before validation succeeds."
+
+  - id: "ISSUE-M1D-001"
+    title: "External same-identity active figure updates do not auto-refresh editable draft"
+    severity: "P1"
+    found_in: "RISK-M1D-006"
+    status: "FIXED"
+    symptoms:
+      - "Draft state became stale if the external active figure changed but retained the same identity."
+      - "External property updates did not sync to a clean draft."
+    fix:
+      - "Refactored useFigureEditingWorkflow's useEffect to trigger on reference changes as well as identity changes."
+      - "Added dirty check to prevent silently overwriting user edits on reference changes."
+    tests:
+      - "tests/figureEditingWorkflow.test.ts"
+    regression_watch:
+      - "Do not rely solely on figureKey for syncing external updates to internal drafts."
+
+  - id: "ISSUE-2026-06-MISSING-PAYLOAD-ACTIONABLE-CANDIDATE"
+    date: "2026-06"
+    status: "FIXED_AND_AUDIT_PASS"
+    area: "candidate workflow / dataset-first UI / Playwright E2E"
+    summary: >
+      AI BAR_CHART and SUMMARY_TABLE candidates appeared actionable with “DÙNG MẪU NÀY”
+      but lacked required chart/table payload. Applying them produced:
+      “Chart candidate is missing its chart payload” and
+      “Table candidate is missing its table payload”.
+    detected_by: "Playwright E2E and AI Studio manual QA"
+    missed_by:
+      - "static review alone"
+      - "unit tests alone"
+      - "screenshot-only review"
+    lesson: >
+      Candidate readiness/actionability must be aligned with actual renderable payload validation.
+      UI must not expose apply/preview actions for candidates that cannot be converted to renderable figures.
+    prevention:
+      - "Validate required data.chart/data.table/data.diagram before ready/actionable status"
+      - "Downgrade missing-payload chart/table/diagram candidates to needs_mapping"
+      - "Hide or disable apply action for non-actionable candidates"
+      - "Require targeted E2E for input → candidate → apply user flow"
+
+  - id: "ISSUE-2026-06-AI-STUDIO-PROXY-NONJSON-200"
+    date: "2026-06"
+    status: "FIXED_AND_AUDIT_PASS"
+    area: "AI runtime / AI Studio preview / transport errors"
+    summary: >
+      AI Studio preview can proxy backend non-2xx AI business errors into an HTML page served as HTTP 200.
+      Frontend may then receive text/html and classify it as AI_ROUTE_NON_JSON_RESPONSE instead of structured AI_QUOTA_EXCEEDED.
+    lesson: >
+      AI business errors that must survive AI Studio preview should use a transport-safe JSON contract,
+      such as HTTP 200 with ok:false and errorCode, while the frontend treats ok:false as a structured business error.
+    prevention:
+      - "Check content-type before JSON parsing"
+      - "Treat ok:false as a structured business error"
+      - "Trigger quota cooldown from AI_QUOTA_EXCEEDED"
+      - "Use cache for repeated valid same-input analysis results"
+      - "Verify AI Studio network response shape during manual QA"
+
+  - id: "ISSUE-2026-06-FULL-E2E-CHART-WORKFLOW-MIXED"
+    date: "2026-06"
+    status: "FIXED_AND_AUDIT_PASS"
+    area: "Playwright E2E / chart workflow"
+    summary: >
+      Full E2E suite returned MIXED in the latest run: 10 passed, 12 failed.
+      Failures were localized to tests/e2e/chart-workflow.spec.ts, including timeouts waiting for preview-canvas-container.
+    classification: "pre-existing unrelated E2E flakiness or workflow timeout pending separate audit"
+    lesson: >
+      A targeted E2E PASS can validate a specific fix, but full E2E mixed results must remain visible and cannot be reported as full E2E PASS.
+    prevention:
+      - "Classify full E2E failures by spec and root cause"
+      - "Do not let unrelated full-suite failures block a narrow targeted fix if targeted E2E passes"
+      - "Do not claim full E2E pass until the full suite actually passes"
+
+  - id: "ISSUE-2026-06-MAIN-BRANCH-SYNC-POLICY"
+    date: "2026-06"
+    status: "recorded"
+    area: "project governance / branch management"
+    summary: >
+      Antigravity agents must not attempt to merge PRs into `main` directly.
+      `main` is strictly owned by Google AI Studio sync workflows.
+    detected_by: "Policy clarification"
+    lesson: >
+      Bypassing AI Studio sync to merge directly to `main` creates risk of breaking the AI Studio runtime environment or diverging state.
+    prevention:
+      - "Antigravity creates local branch/PR for review and backup only"
+      - "ZIP payload is created for AI Studio import"
+      - "AI Studio handles the sync to `main`"
+
+  - id: "ISSUE-2026-06-QA-CYCLE-DESIGN"
+    date: "2026-06"
+    status: "recorded"
+    area: "project governance / QA workflow"
+    summary: >
+      Designing a custom /qa-cycle workflow to standardize local QA.
+    reason: "prevent future main-sync and QA protocol mistakes."
+
+  - id: "ISSUE-TS-LINT-OMITTED"
+    title: "TypeScript errors missed due to omitted linting"
+    status: "CLOSED"
+    root_cause_id: "RC-LINT-GATE-OMITTED"
+    discovery_date: "2026-06-16"
+    description: "Vite build does not perform TypeScript checking. Omission of explicit linting allowed TypeScript errors in DatasetFirstCandidateList to reach main."
+    resolution: "Added npm run lint / tsc --noEmit to the required QA gate and fixed VisualCandidate typing to preserve RankedVisualCandidate fields."

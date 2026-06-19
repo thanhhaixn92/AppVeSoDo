@@ -1,0 +1,26 @@
+phase: "design"
+status: "QA_CYCLE_WORKFLOW_DESIGN_READY_FOR_REVIEW"
+mode: "docs_only_workflow_design_no_code_changes"
+code_changed: false
+branch: "antigravity/next-planning"
+latest_commit: "34c2e8f"
+
+changed_files:
+  - ".agent/workflows/qa-cycle.md"
+  - ".agent/context/project-state.yml"
+  - ".agent/context/issue-memory.yml"
+  - ".agent/context/root-cause-library.yml"
+  - "REPORT_QA_CYCLE_WORKFLOW_DESIGN.yml"
+
+not_changed:
+  product_source: true
+  tests: true
+  package_files: true
+
+workflow_summary: "Designed a new /qa-cycle workflow to standardize QA processes, ZIP creation, and AI Studio sync verification locally for Antigravity, while strictly prohibiting direct main merges/pushes."
+
+risks_remaining:
+  - "The /qa-cycle is currently a documentation standard and will need an automation script or systematic prompt to enforce these stages reliably in future tasks."
+  - "Verification of `origin/main` by content instead of commit ancestry might require a specific git command strategy that isn't fully detailed yet."
+
+next_recommended_task: "Review and approve the /qa-cycle workflow design, and decide whether to implement it as an executable automation script or proceed to MODEL_INDEPENDENT_CSS_POLISH."

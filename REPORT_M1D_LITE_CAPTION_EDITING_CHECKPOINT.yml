@@ -1,0 +1,34 @@
+report_type: "M1D_LITE_CAPTION_EDITING_CHECKPOINT"
+date: "2026-06-16"
+status: "VALIDATION_PENDING"
+
+files_changed:
+  - "src/components/M1DLitePropertyPanel.tsx"
+  - "src/hooks/useFigureEditingWorkflow.ts"
+exact_edits_per_file: "Added setDraftCaption and updateCaption to useFigureEditingWorkflow hook to safely mutate the underlying caption field for each specific figure type. Added a caption textarea to M1DLitePropertyPanel."
+
+caption_field_used: "chart.config.caption | diagram.caption | table.caption"
+
+feature_support:
+  title_editing_preserved: "YES"
+  theme_editing_preserved: "YES"
+  caption_editing_supported: "YES"
+  draft_apply_cancel_preserved: "YES"
+  sourceCandidateUid_preserved: "YES"
+
+app_tsx_touched: "NO"
+figure_renderer_touched: "NO"
+package_files_touched: "NO"
+export_dom_changed: "NO"
+data_export_target_changed: "NO"
+renderer_wrappers_changed: "NO"
+candidate_policy_changed: "NO"
+
+validation_results:
+  build_result: "PENDING"
+  unit_test_result: "PENDING"
+  missing_payload_guard_e2e_result: "PENDING"
+  chart_workflow_e2e_result: "PENDING"
+  full_e2e_result: "PENDING"
+
+checkpoint_ready_for_single_zip: "YES"

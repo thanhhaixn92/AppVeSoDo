@@ -1,0 +1,32 @@
+id: "RICH_EDITOR_WORKSPACE_SPACING_HOTFIX"
+title: "Rich Editor Workspace, Select-All, and Text Spacing Hotfix Bundle"
+status: "COMPLETED"
+date: "2026-06-18"
+
+summary: |
+  Fixed input editor select-all UX, preserved spacing across adjacent parsed text nodes, and increased editor workspace size.
+
+changes:
+  - type: ENHANCEMENT
+    scope: editor_ux
+    description: "Implemented global Ctrl+A/Cmd+A trapping inside RichDocumentEditor. Highlights editor contents with a stateful banner and supports bulk Ctrl+C copy and Backspace delete."
+  - type: FIX
+    scope: parser_engine
+    description: "Resolved 'joined words' bug in documentParser. Adjacent text blocks without formatting tags now safely collapse whitespace instead of incorrectly smashing into unified strings."
+  - type: ENHANCEMENT
+    scope: workspace_layout
+    description: "Widened the RichDocumentEditor bounding box to use `max-w-6xl`, deepened the min height, and softened internal spacing so it operates less like a card and more like a fluid layout."
+  - type: ENHANCEMENT
+    scope: regression_tests
+    description: "Added `documentParser.spacing.test.ts` to freeze spacing logic against future `innerText` manipulation regressions."
+
+deferred_items:
+  e2e_runner_environment: "Playwright E2E execution continues to report 'BLOCKED_BY_ENVIRONMENT' due to missing browser binaries. Verified via local smoke checks."
+
+verification:
+  lint: PASS
+  build: PASS
+  unit_tests: PASS
+  e2e_editor_select: BLOCKED_BY_ENVIRONMENT
+  e2e_missing_payload: BLOCKED_BY_ENVIRONMENT
+  e2e_chart_workflow: BLOCKED_BY_ENVIRONMENT

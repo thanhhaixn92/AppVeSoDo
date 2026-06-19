@@ -1,0 +1,26 @@
+phase: "R7-FIX-INPUT-UX-1C-STABILIZE - Pending Patch Sync Readiness"
+status: "PASS"
+mode: "stabilize"
+branch_policy: "sửa tiếp trên branch hiện tại"
+code_changed: false
+changed_files: []
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: BLOCKED_BY_ENVIRONMENT
+verified:
+  test_j_bad_selector_removed: true
+  test_j_analyze_selector_correct: true
+  test_j_candidate_card_testid: true
+  test_j_source_section_assertion_correct: true
+  candidate_source_section_visible: true
+  candidate_source_excerpt_visible: true
+  no_placeholder_source_metadata: true
+  analyzer_scope_preserved: true
+  export_modules_untouched: true
+  reports_present: true
+remaining_risks:
+  - Playwright chromium is blocked by environment and needs to be run externally to ensure actual browser interaction rendering matches test assumptions.
+commit_created: false
+pr_created: false

@@ -1,0 +1,18 @@
+task: "Update governance files with QA/E2E policy and agent routing rules"
+files_changed:
+  - ".agent/context/issue-memory.yml"
+  - ".agent/context/milestone-acceptance.yml"
+  - ".agent/context/project-state.yml"
+  - ".agent/context/root-cause-library.yml"
+  - "AGENTS.md"
+source_test_files_changed: false
+exact_governance_updates:
+  AGENTS.md: "Added QA and Tool-Routing Policy, and Antigravity Commands sections."
+  project-state.yml: "Appended qa_policy_update_2026_06 with active QA policy, e2e_reporting_rule, and known_current_e2e_baseline."
+  issue-memory.yml: "Added ISSUE-2026-06-MISSING-PAYLOAD-ACTIONABLE-CANDIDATE, ISSUE-2026-06-AI-STUDIO-PROXY-NONJSON-200, and ISSUE-2026-06-FULL-E2E-CHART-WORKFLOW-MIXED."
+  root-cause-library.yml: "Added RC-CANDIDATE-ACTIONABILITY-NOT-ALIGNED-WITH-RENDERABILITY, RC-AI-STUDIO-PROXY-WRAPS-NON2XX-AS-HTML-200, RC-STATIC-UNIT-INSUFFICIENT-FOR-USER-FACING-UI-FLOWS, and RC-FULL-E2E-MIXED-DOES-NOT-EQUAL-PASS."
+  milestone-acceptance.yml: "Added user_facing_flow_acceptance with rule, targeted_vs_full_e2e, and blocked_environment instructions."
+yaml_validation_result: "Node, Python (PyYAML), and Ruby were unavailable or lacked YAML parsing libraries without installing dependencies. Syntax is manually verified but not tool-validated."
+new_governance_file_created: false
+final_git_status: "Uncommitted changes only in existing governance/report files"
+recommended_commit_message: "docs: record QA E2E policy and agent routing"

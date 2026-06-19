@@ -1,0 +1,60 @@
+phase: "M1.5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_IMPLEMENTATION"
+status: "PASS"
+mode: "targeted_additive_dataset_first_wiring"
+code_changed: true
+branch: "codex/m1-5-dataset-first-slice-2-implementation"
+base_commit: "ecade28"
+
+changed_files:
+  - "src/analysis/datasetCandidateSelectors.ts"
+  - "tests/datasetCandidateSelectors.test.ts"
+  - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_IMPLEMENTATION.yml"
+
+forbidden_files_check:
+  app_tsx_changed: false
+  useCandidateWorkflow_changed: false
+  workflowUtils_changed: false
+  candidateModel_policy_changed: false
+  candidateToRenderableAdapter_changed: false
+  useFigureEditingWorkflow_changed: false
+  export_changed: false
+  firebase_changed: false
+  auth_changed: false
+  server_changed: false
+  package_json_changed: false
+  ai_runtime_changed: false
+  m1e_work_started: false
+
+implementation_summary: "Introduced a pure selector utility 'selectDatasetFirstGroups' that takes legacy VisualCandidates and groups them by sourceGroupId (or fallback candidate ID) into DatasetFirstGroup objects. Each group contains one unified DatasetCandidate and an array of FigureRecommendations. The output model preserves back-references to the original VisualCandidate to maintain compatibility."
+
+selector_api_summary: "selectDatasetFirstGroups(candidates) -> { groups: DatasetFirstGroup[], legacyCandidateByRecommendationId: Record<string, VisualCandidate> }"
+
+compatibility_with_visualcandidate: "100% compatible. The selector creates read-only view-models without mutating the legacy VisualCandidate array. Legacy handlers can fetch the original candidate using legacyCandidateByRecommendationId."
+
+compatibility_with_m1c_adapter: "100% compatible. M1C adapter is untouched and continues receiving legacy VisualCandidate objects."
+
+compatibility_with_m1d_lite: "100% compatible. M1D-LITE's editing of active/saved figures remains completely isolated."
+
+tests_added:
+  - "tests/datasetCandidateSelectors.test.ts verifies grouping, empty lists, immutable mapping, stability, and ID handling."
+
+commands:
+  targeted_test: "npm test -- datasetCandidateSelectors"
+  lint: "NOT_RUN"
+  build: "NOT_RUN"
+  unit_test: "npm test -- candidateModel && npm test -- candidateToRenderableAdapter && npm test -- figureEditingWorkflow"
+  e2e: "NOT_RUN"
+
+validation_results:
+  git_status_clean_except_allowed: true
+  tests_passed: true
+
+risks_remaining:
+  - "UI integration: the actual presentation layer (App.tsx and UI components) is not yet wired to consume this selector. This must be carefully planned in the next step."
+
+deferred_items:
+  - "Wiring the selector to the UI components."
+  - "Creating new UI components for DatasetCandidate and FigureTypeOption."
+  - "M1E AI chat workflow."
+
+next_recommended_task: "M1.5_DATASET_FIRST_UI_SURFACE_PLANNING"

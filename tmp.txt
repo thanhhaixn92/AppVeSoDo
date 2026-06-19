@@ -1,0 +1,10 @@
+354:  const [visualCandidates, setVisualCandidates] = useState<
+674:      setSelectedCandidateUid(null);
+681:      setVisualCandidates((prev) =>
+704:    setSelectedCandidateUid(uid);
+759:    setSelectedCandidateUid(null);
+903:      setVisualCandidates(dedupedAndRanked);
+1033:  const [selectedCandidateUid, setSelectedCandidateUid] = useState<
+2536:    setSelectedCandidateUid(null);
+3103:                    setVisualCandidates([]);
+3109:                    setSelectedCandidateUid(null);

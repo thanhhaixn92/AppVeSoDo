@@ -1,0 +1,36 @@
+phase: "MARK_M1B2_AUDIT_PASS_AND_CHECKPOINT"
+status: "PASS"
+mode: "checkpoint_only"
+code_changed: false
+
+files_updated:
+  - ".agent/context/project-state.yml"
+  - ".agent/context/phase-history.yml"
+  - ".agent/context/handoff-log.md"
+  - ".agent/context/risk-register.yml"
+
+files_created: []
+
+source_files_changed: false
+
+checkpoint:
+  m1a: "AUDIT_PASS"
+  m1b1: "AUDIT_PASS"
+  m1b2: "AUDIT_PASS"
+  next_milestone: "M1C — Candidate-to-renderable/template adapter boundary"
+  m1c_started: false
+
+validation:
+  yaml_validation: "NOT_RUN"
+  source_change_check: "PASS"
+
+e2e:
+  status: "BLOCKED_BY_ENVIRONMENT"
+  reason: "broken dpkg / missing fontconfig packages required by Playwright sandbox"
+
+risks_remaining:
+  - "E2E remains blocked by environment."
+  - "setPreviewFigure exposed from useCandidateWorkflow should be watched in M1C/UI phase."
+
+next_recommended_task:
+  "M1C-PLANNING-AUDIT"

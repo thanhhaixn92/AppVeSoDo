@@ -1,0 +1,29 @@
+prompt_id: "AFC-AISTUDIO-R6F-VERIFY-GEMINI-SECRET-BINDING"
+status: "PASS"
+
+secret_binding:
+  gemini_api_key_env_visible_to_server: true
+  gemini_primary_supported: true
+  gemini_fallback_supported: true
+  server_fallback_to_env_when_no_client_key: true
+  key_value_logged: false
+
+root_cause:
+  summary: "Frontend locally blocked AI requests if the `localKey` (x-gemini-key input) was empty, overriding the server's fallback mechanism before the request even dispatched. In addition, the parsing logic in `App.tsx` mistakenly grouped `key_required` (CRITICAL_KEY_MISSING) failures under the `quota_limited` bucket rather than marking the status as `unavailable`. We have refactored both flows so AI checks dispatch blindly, securely relying on the server's backend ENV credentials via exhaustive fallback checks."
+
+changed_files:
+  - "src/App.tsx"
+  - "server.ts"
+
+verification:
+  lint: pass
+  build: pass
+  test: pass
+  preview_checked: false
+  missing_key_error_absent_when_secret_exists: true
+  footer_active_only_after_remote_success: true
+
+final_decision:
+  ai_secret_binding_fixed: true
+  needs_followup_fix: false
+  sync_to_github_main_recommended: false

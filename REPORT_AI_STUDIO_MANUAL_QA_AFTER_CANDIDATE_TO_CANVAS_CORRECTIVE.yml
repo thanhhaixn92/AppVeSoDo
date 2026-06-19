@@ -1,0 +1,19 @@
+phase: "AI_STUDIO_MANUAL_QA_AFTER_CANDIDATE_TO_CANVAS_CORRECTIVE"
+status: "PASS"
+mode: "manual_preview_only"
+code_changed: false
+
+results:
+  candidate_generation: "PASS"
+  preview_flow: "PASS"
+  apply_flow: "PASS"
+  invalid_candidate_recovery: "PASS"
+  m1d_lite_chart_editing: "PASS"
+  m1d_lite_table_editing: "PASS"
+  m1d_lite_diagram_editing: "PASS"
+  save_export_smoke: "PASS"
+
+issues_found: []
+
+recommendation:
+  next_task: "MARK_CANDIDATE_TO_CANVAS_AND_M1D_LITE_PREVIEW_PASS"

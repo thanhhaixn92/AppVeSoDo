@@ -1,0 +1,26 @@
+phase: "R7-FIX-INPUT-UX-1A - Visible Paste Editor for Empty Document"
+status: "PASS"
+mode: "implement"
+branch_policy: "sửa tiếp trên branch hiện tại"
+branch: "work"
+code_changed: true
+changed_files:
+  - "src/components/RichDocumentEditor.tsx"
+  - "tests/e2e/chart-workflow.spec.ts"
+commands:
+  lint: PASS
+  unit_test: PASS
+  build: PASS
+  e2e: BLOCKED_BY_ENVIRONMENT
+implemented:
+  visible_empty_paste_editor: true
+  textarea_focusable: true
+  long_text_paste_supported: true
+  draft_submit_to_blocks: true
+  sample_upload_preserved: true
+  existing_editor_not_regressed: true
+  analyzer_untouched: true
+  export_modules_untouched: true
+remaining_risks: []
+commit_created: false
+pr_created: false

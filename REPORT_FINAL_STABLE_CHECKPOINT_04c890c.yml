@@ -1,0 +1,47 @@
+branch: "antigravity/ai-analysis-request-safety-guard"
+latest_commits:
+  - "04c890c test: stabilize chart workflow e2e"
+  - "35b07f9 docs: audit chart workflow e2e stabilization"
+  - "cab7ae4 docs: record QA E2E policy and agent routing"
+  - "79ffd50 fix: guard missing-payload candidates from apply"
+  - "2943bc4 fix: make AI analysis transport-safe and cache valid results"
+stable_commit: "04c890c"
+zip_name: "so-do-app-full-e2e-pass-04c890c.zip"
+zip_size: "713,688 bytes"
+
+local_validation_evidence:
+  - "build: PASS"
+  - "unit tests: PASS"
+  - "missing-payload-guard E2E: PASS"
+  - "chart-workflow E2E: PASS"
+  - "full E2E: PASS, 17 passed, 5 skipped"
+
+ai_studio_final_smoke_evidence:
+  - "app_launch: PASS"
+  - "app_not_blank: PASS"
+  - "initial_console_crash: PASS"
+  - "analyze_click_once: PASS"
+  - "candidate_cards_render: PASS"
+  - "columns_crash: PASS, does not occur"
+  - "unexpected_token_html: PASS, does not occur"
+  - "non_json_warning_200: PASS, does not occur"
+  - "quota_transport_json: PASS"
+  - "cooldown_triggered: PASS"
+  - "repeated_click_blocked: PASS"
+  - "cache_hit_same_input: PASS"
+  - "missing_payload_guard: PASS"
+  - "active_apply_button_on_missing_payload: PASS, does not appear"
+  - "missing_payload_error_toast: PASS, does not appear"
+  - "console_errors: None"
+
+known_caveat: >
+  AI Studio final smoke validated runtime/transport/cache/quota/missing-payload guard, but AI Studio reported 
+  preview_flow and apply_flow as NOT_AVAILABLE_NO_READY_CANDIDATE. The full preview/apply/canvas workflow 
+  is covered and verified by the local Playwright full E2E PASS, not by AI Studio in this specific smoke case.
+
+remaining_deferred_product_work:
+  - "AI candidate to renderable payload synthesis is not solved here."
+  - "M1E AI chat workflow not started."
+  - "M1C adapter/template boundary remains next product milestone."
+
+final_recommendation: "READY_FOR_NEXT_GOVERNANCE_STEP"

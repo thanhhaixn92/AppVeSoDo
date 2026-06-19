@@ -1,0 +1,105 @@
+phase: "M1.5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_PLANNING"
+status: "PASS"
+mode: "architecture_planning_only"
+code_changed: false
+branch: "codex/m1-5-dataset-first-slice-2-planning"
+base_commit: "a9dbec6"
+
+files_inspected:
+  governance_files:
+    - "AGENTS.md"
+    - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_PLAN.yml"
+    - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_1.yml"
+    - ".agent/context/project-state.yml"
+    - ".agent/context/codebase-map.yml"
+    - ".agent/context/module-index.yml"
+    - ".agent/context/risk-register.yml"
+    - ".agent/context/file-ownership.yml"
+    - ".agent/context/file-locks.yml"
+    - ".agent/context/milestone-acceptance.yml"
+    - ".agent/project/protected-areas.md"
+    - ".agent/project/current-roadmap.md"
+    - ".agent/project/product-profile.md"
+    - ".agent/project/architecture-profile.md"
+    - ".agent/core/universal-report-format.md"
+  source_files:
+    - "src/analysis/datasetModel.ts"
+    - "src/types.ts"
+    - "src/analysis/candidateModel.ts"
+    - "src/analysis/candidateToRenderableAdapter.ts"
+    - "src/lib/workflowUtils.ts"
+    - "src/hooks/useCandidateWorkflow.ts"
+    - "src/hooks/useDocumentWorkflow.ts"
+    - "src/App.tsx"
+  test_files:
+    - "tests/datasetModel.test.ts"
+
+governance_constraints_applied:
+  risk_register: "Constraints noted and followed for safely decoupling visual candidate orchestration"
+  file_locks: "No conflicting locks found"
+  current_roadmap: "M1.5 before M1E"
+  product_profile: "dataset-first target decoupling"
+  architecture_profile: "constraints followed to not change adapter behavior"
+  universal_report_format: "compliance met"
+
+recommended_slice_2_scope:
+  keep_slice_2_additive: true
+  preserve_visualcandidate_compatibility: true
+  no_removal_of_legacy_candidate_flow: true
+  no_m1c_adapter_behavior_change: true
+  no_m1d_lite_workflow_change: true
+  no_export_firebase_auth_server_package_ai_runtime_change: true
+  no_m1e: true
+
+slice_1_summary: "Introduced pure DatasetCandidate, FigureRecommendation, FigureTypeOption types and a pure function deriveDatasetFirstFromLegacyCandidate. No runtime changes made."
+
+current_runtime_flow_summary: "App.tsx and useCandidateWorkflow still hold an array of flat RankedVisualCandidate objects. They are mapped directly into UI lists. Preview and Apply functions expect the legacy VisualCandidate."
+
+proposed_slice_2_objective: "Introduce dataset-first view-models into the UI layer to group recommendations by data source, without mutating core state or replacing the legacy VisualCandidate workflow underneath."
+
+evaluated_options:
+  - "Option A: Pure selector/hook (useDatasetFirstCandidates.ts) that wraps useCandidateWorkflow output and derives grouped view-models dynamically for the UI."
+  - "Option B: Non-runtime selector utility in analysis folder for grouping."
+  - "Option C: Minimal UI read-only surfacing directly inside the candidate panel component."
+
+recommended_implementation_option: "Option A. It perfectly isolates the dataset-first logic from useCandidateWorkflow, keeps App.tsx small by abstracting the mapping, and retains full backwards compatibility by exposing a way to dispatch legacy VisualCandidates to existing handlers."
+
+planned_changed_files_for_slice_2:
+  - "src/hooks/useDatasetFirstCandidates.ts (NEW)"
+  - "tests/useDatasetFirstCandidates.test.ts (NEW)"
+  - "src/App.tsx (Modify the map loop to use the new hook and render dataset-first groups)"
+  - "REPORT_M1_5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2.yml (NEW)"
+
+explicitly_forbidden_or_deferred_files:
+  - "src/hooks/useCandidateWorkflow.ts"
+  - "src/analysis/candidateModel.ts"
+  - "src/analysis/candidateToRenderableAdapter.ts"
+  - "src/hooks/useFigureEditingWorkflow.ts"
+  - "export DOM contract and renderer DOM wrappers"
+  - "Firebase, Auth, server.ts, package.json"
+  - "AI runtime files"
+
+compatibility_strategy:
+  visual_candidate: "The new selector hook will retain a reference to the originalCandidate within the view-model. When the user clicks Preview/Apply on a FigureTypeOption, the UI will pass the originalCandidate to the existing handlePreviewCandidate/handleApplyCandidate functions."
+  m1c_adapter: "Deferred. The M1C adapter will continue receiving the legacy VisualCandidate from the existing workflow handlers."
+  m1d_lite: "Preserved exactly. Since preview and apply behavior remains identical under the hood, M1D-LITE's editing of SavedFigures is completely isolated and unaffected."
+
+app_tsx_containment_strategy: "App.tsx will consume useDatasetFirstCandidates(visualCandidates) instead of visualCandidates directly. The flat list mapping will be replaced by a nested mapping (Datasets -> Recommendations -> Options). This avoids adding business logic to App.tsx."
+
+test_plan: "Create tests/useDatasetFirstCandidates.test.ts to verify the grouping logic works given a mock array of VisualCandidates. Run all existing tests."
+
+manual_qa_plan: "Generate candidates using the 'Analyze' button. Verify that candidates derived from the same source text/dataset are visually grouped together in the UI. Verify that clicking Preview/Apply on any option inside the group correctly renders the figure on the canvas and opens the M1D-Lite properties panel."
+
+rollback_plan: "Revert the App.tsx loop to use visualCandidates directly and delete the new hook. Zero state corruption risk because state was not migrated."
+
+risks_and_mitigations:
+  - "Risk: Visual design of dataset cards is poor or breaks existing CSS. Mitigation: Only do structural grouping first. Model-independent CSS polish was already done, so stick to safe existing CSS classes."
+
+acceptance_criteria:
+  - "No core state changes in useCandidateWorkflow."
+  - "New selector hook implemented with tests."
+  - "App.tsx uses hook to group UI elements but preserves existing handlers."
+  - "Legacy preview and apply workflows remain unbroken."
+  - "Zero export, M1C, or M1D-LITE regressions."
+
+next_recommended_task: "M1.5_DATASET_FIRST_MODEL_MIGRATION_SLICE_2_IMPLEMENTATION"

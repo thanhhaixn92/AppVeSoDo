@@ -1,0 +1,226 @@
+root_causes:
+  - id: "RC-001"
+    name: "Policy duplicated outside central model"
+    pattern: "Candidate usability/preview/apply logic is redefined in UI or handlers instead of using candidateModel helpers."
+    symptoms:
+      - "UI enables actions for candidates that should be blocked."
+      - "Preview/apply handlers use status comparisons instead of policy helpers."
+      - "needs_mapping or other non-ready states bypass intended checks."
+    fix_strategy:
+      - "Centralize policy in src/analysis/candidateModel.ts."
+      - "Use isCandidateUsable, isCandidatePreviewable, and isCandidateApplicable at UI, handler, and builder boundaries."
+      - "Add regression tests around non-ready and needs_mapping candidates."
+    regression_search:
+      - "condition !== 'not_ready'"
+      - "status !== 'not_ready'"
+      - "needs_mapping"
+      - "isCandidatePreviewable"
+      - "isCandidateApplicable"
+    related_issues:
+      - "ISSUE-M1A-001"
+
+  - id: "RC-002"
+    name: "Raw preservation boundary bypass"
+    pattern: "Document block mutations bypass useDocumentWorkflow, causing raw text and block state to diverge."
+    symptoms:
+      - "Paste/import updates blocks without updating rawDocumentText or stale state correctly."
+      - "Imported text and existing blocks are merged inconsistently."
+      - "Analysis input no longer reflects the intended raw-or-structured source strategy."
+    fix_strategy:
+      - "Route paste/import/sample/reset/restore through useDocumentWorkflow boundaries."
+      - "Keep rawDocumentText, rawDocumentTextStale, documentBlocks, and analysis input selection consistent."
+      - "Add regression tests for paste/import/replace/merge modes."
+    regression_search:
+      - "onChange("
+      - "setDocumentBlocks"
+      - "rawDocumentText"
+      - "rawDocumentTextStale"
+    related_issues:
+      - "ISSUE-M1B1-001"
+
+  - id: "RC-003"
+    name: "Protected-area scope creep"
+    pattern: "A refactor task starts modifying export, Firebase, server, auth, dependencies, or real AI because it seems convenient."
+    symptoms:
+      - "Diff includes files outside the task allowlist."
+      - "Tests are made to pass by changing unrelated contracts."
+      - "A later milestone starts before the current milestone has a human checkpoint."
+    fix_strategy:
+      - "Use the task file allowlist/forbidden list before editing."
+      - "Stop and report when protected-area changes appear necessary."
+      - "Do not begin M1C/M2/M3 implicitly."
+    regression_search:
+      - "data-export-target"
+      - "Firebase"
+      - "Gemini"
+      - "server.ts"
+      - "package.json"
+
+  - id: "RC-004"
+    name: "E2E result overclaim"
+    pattern: "Agent reports E2E pass even though Chromium install/launch did not actually run."
+    symptoms:
+      - "Playwright install blocked by APT/proxy/system dependency."
+      - "Chromium executable missing."
+      - "Report says PASS but no browser run evidence exists."
+    fix_strategy:
+      - "Use PASS only when Chromium E2E runs and passes."
+      - "Use BLOCKED_BY_ENVIRONMENT when install/launch is blocked."
+      - "Include exact command and failure reason in report."
+    regression_search:
+      - "E2E PASS"
+      - "BLOCKED_BY_ENVIRONMENT"
+      - "chromium"
+      - "playwright"
+
+  - id: "RC-005"
+    name: "Large orchestration shell re-accumulation"
+    pattern: "App.tsx regains domain workflow logic after hooks have been extracted."
+    symptoms:
+      - "App.tsx owns candidate/document/analysis policy instead of orchestration only."
+      - "Extracted hooks become thin wrappers while logic remains in App.tsx."
+      - "New handlers duplicate domain-level decisions."
+    fix_strategy:
+      - "Extract one concern at a time."
+      - "Keep App.tsx as orchestration shell only."
+      - "Keep policy in domain modules and state transitions in scoped hooks."
+    regression_search:
+      - "useCandidateWorkflow"
+      - "useDocumentWorkflow"
+      - "CandidateUiStatus"
+      - "setSelectedCandidate"
+
+  - id: "RC-006"
+    name: "Preview flow ordering bug"
+    pattern: "Navigation or state clearing happens before the payload is built and validated."
+    symptoms:
+      - "Clicking apply/preview navigates to an empty canvas."
+      - "Validation errors cause the user to lose their selection."
+    fix_strategy:
+      - "Build and validate the candidate payload first."
+      - "Only clear selection and navigate if validation succeeds."
+      - "If validation fails, surface a recoverable error without losing the active selection."
+    regression_search:
+      - "onPreviewRequested"
+      - "setSelectedCandidate(null)"
+      - "candidateToRenderableAdapter"
+    related_issues:
+      - "ISSUE-M1C-001"
+
+  - id: "RC-CANDIDATE-ACTIONABILITY-NOT-ALIGNED-WITH-RENDERABILITY"
+    category: "candidate_workflow"
+    pattern: >
+      Candidate UI marks a recommendation as ready/actionable based on confidence or recommendation status,
+      but the underlying VisualCandidate lacks required render payload such as data.chart, data.table, or data.diagram.
+    symptoms:
+      - "Candidate card shows DÙNG MẪU NÀY"
+      - "Apply/preview fails with missing chart/table/diagram payload"
+      - "Ready count does not match actual renderability"
+    prevention:
+      - "Readiness policy must validate required render payload"
+      - "Missing-payload candidates must be needs_mapping/not_ready"
+      - "E2E must cover input → candidate → apply"
+    preferred_fix: >
+      Strict readiness guard first. Do not synthesize payload unless the task explicitly opens dataset extraction or renderable synthesis scope.
+
+  - id: "RC-AI-STUDIO-PROXY-WRAPS-NON2XX-AS-HTML-200"
+    category: "ai_runtime_transport"
+    pattern: >
+      Backend returns non-2xx JSON for an AI business error, but AI Studio preview or hosting proxy replaces it with HTML served as HTTP 200.
+    symptoms:
+      - "Unexpected token '<'"
+      - "AI extraction returned non-JSON or error: 200"
+      - "Quota cooldown does not trigger even when Gemini returned 429"
+    prevention:
+      - "Use transport-safe ok:false JSON contract for AI business errors"
+      - "Check content-type before parsing JSON"
+      - "Treat ok:false as structured business error"
+      - "Keep AI Studio manual QA network trace in reports"
+
+  - id: "RC-STATIC-UNIT-INSUFFICIENT-FOR-USER-FACING-UI-FLOWS"
+    category: "qa_process"
+    pattern: >
+      Static analysis and unit tests pass, but user-facing click flow still fails in browser because the error depends on real UI state,
+      button visibility, network behavior, or Canvas rendering.
+    symptoms:
+      - "Unit tests pass but manual QA fails"
+      - "Screenshot looks correct but clicking action fails"
+      - "Canvas blank or apply button triggers runtime toast"
+    prevention:
+      - "Use Playwright E2E for input/candidate/preview/apply/canvas flows"
+      - "Run browser verification for UI regressions"
+      - "Report E2E as BLOCKED_BY_ENVIRONMENT if browser unavailable"
+
+  - id: "RC-FULL-E2E-MIXED-DOES-NOT-EQUAL-PASS"
+    category: "qa_process"
+    pattern: >
+      A targeted E2E spec passes for the affected fix, but the full E2E suite still has unrelated failures.
+      Reporting the overall E2E state as PASS would be misleading.
+    symptoms:
+      - "targeted E2E pass"
+      - "full E2E mixed or failed"
+      - "failures localized to unrelated existing specs"
+    prevention:
+      - "Report targeted E2E and full E2E separately"
+      - "Classify unrelated full-suite failures honestly"
+      - "Create follow-up task for full E2E stabilization"
+
+  - id: "RC-E2E-LIVE-GEMINI-INSTABILITY"
+    category: "qa_process"
+    pattern: "live Gemini should not be used in default deterministic E2E. The AI response is subject to latency, rate limiting, and output non-determinism."
+    symptoms:
+      - "E2E tests flake on API timeouts or unexpected payloads"
+    prevention:
+      - "Use deterministic route mocks for core workflow E2E"
+
+  - id: "RC-E2E-TEARDOWN-TIMEOUT"
+    category: "qa_process"
+    pattern: "Playwright chart/canvas-heavy tests may require serial mode and teardown cleanup to avoid GPU/context exhaustion."
+    symptoms:
+      - "Tearing down 'context' exceeded the test timeout of 30000ms"
+    prevention:
+      - "Use test.describe.configure({ mode: 'serial' }) for heavy suites"
+      - "Add page.close() in afterEach and wipe active hovers before teardown"
+
+  - id: "RC-AI-STUDIO-SMOKE-LIMITATION"
+    category: "qa_process"
+    pattern: "AI Studio smoke is not a replacement for Playwright full E2E. AI recommendations cannot be treated as renderable unless frontend preserves/builds payload, which AI Studio doesn't automatically verify if no 'ready' candidates are generated."
+    symptoms:
+      - "AI Studio passes all steps but preview/apply is untested"
+    prevention:
+      - "Rely on Playwright full E2E PASS for the complete user workflow validation"
+
+  - id: "RC-MAIN-BRANCH-MERGE-BYPASS"
+    category: "project_governance"
+    pattern: "An agent attempts to merge a PR or push directly to `main` bypassing Google AI Studio."
+    symptoms:
+      - "Pull request merge commands are executed on `main`."
+      - "Local branch changes are pushed to `main` directly."
+      - "AI Studio runtime loses sync with GitHub `main`."
+    prevention:
+      - "Never merge PRs to `main` via agent workflows."
+      - "Never push directly to `main`."
+      - "Always route `main` updates through AI Studio ZIP import and sync."
+
+  - id: "RC-MISSING-QA-CYCLE-GUARDRAILS"
+    category: "project_governance"
+    pattern: "Lack of a standardized, guarded local /qa-cycle workflow leads to inconsistent QA verification and main-sync protocol violations."
+    symptoms:
+      - "Tests not run but claimed PASS."
+      - "Attempts to merge PRs into main."
+      - "Missing AI Studio ZIP verification."
+    prevention:
+      - "Implement and follow the /qa-cycle workflow to enforce strict stages from preflight to post-AI Studio main sync verification."
+
+  - id: "RC-LINT-GATE-OMITTED"
+    category: "qa_process"
+    pattern: "Vite build succeeds despite TypeScript errors because Vite/esbuild transpiles without running full type checking. Omitting npm run lint / tsc --noEmit allows type defects into main."
+    symptoms:
+      - "npm run lint fails"
+      - "npm run build passes"
+      - "unit tests pass"
+      - "TypeScript-only defects remain undetected"
+    prevention:
+      - "Require npm run lint before build/unit/E2E signoff"
+      - "Reports must not claim validation complete if lint was not run"
+      - "Record lint result in final checkpoint reports"
