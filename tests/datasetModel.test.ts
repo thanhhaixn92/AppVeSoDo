@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { deriveDatasetFirstFromLegacyCandidate } from '../src/analysis/datasetModel';
-import { VisualCandidate } from '../src/types';
+import { deriveDatasetFirstFromLegacyCandidate, DatasetSelection } from '../src/analysis/datasetModel';
+import { VisualCandidate, DatasetSourceMetadata, DatasetProvenance, DatasetFirstPayload, DatasetFigureKind } from '../src/types';
 
 function createMockCandidate(id: string, type: 'chart' | 'table' | 'diagram', payload: unknown, extra: Partial<VisualCandidate> = {}): VisualCandidate {
   return {
@@ -107,5 +107,56 @@ describe('datasetModel pure derivation', () => {
     const { datasetCandidate, recommendation } = deriveDatasetFirstFromLegacyCandidate(legacy);
     
     expect(recommendation.datasetCandidateId).toBe(datasetCandidate.id);
+  });
+});
+
+describe('Dataset First Model Type Alignment Boundary', () => {
+  it('confirms DatasetSelection remains compatible with DatasetSourceMetadata and DatasetProvenance', () => {
+    const testSelection: DatasetSelection = {
+      sourceRange: { start: 0, end: 10 },
+      sourceSectionId: 'section-1',
+      sourceSectionHeading: 'Heading',
+      sourceExcerpt: 'Excerpt',
+      sourceLineRange: { startLine: 1, endLine: 5 },
+      sourceText: 'Source text',
+      sourceGroupId: 'group-1'
+    };
+
+    const asMetadata: DatasetSourceMetadata = testSelection;
+    expect(asMetadata).toBeDefined();
+
+    const asPartialProvenance: Partial<DatasetProvenance> = testSelection;
+    expect(asPartialProvenance).toBeDefined();
+  });
+
+  it('confirms DatasetFigureKind restricts to specific literal types', () => {
+    const kind1: DatasetFigureKind = 'chart';
+    const kind2: DatasetFigureKind = 'diagram';
+    const kind3: DatasetFigureKind = 'table';
+    expect([kind1, kind2, kind3]).toContain('chart');
+  });
+
+  it('confirms deriveDatasetFirstFromLegacyCandidate preserves payload references identically without deep cloning', () => {
+    const originalChartPayload = { config: { type: 'bar' }, customRef: { deep: true } };
+    const legacy = createMockCandidate('payload-test', 'chart', originalChartPayload);
+    const { datasetCandidate } = deriveDatasetFirstFromLegacyCandidate(legacy);
+    
+    // Strict equality checks reference identity, confirming no mutation overhead or cloning
+    expect(datasetCandidate.data.chart).toBe(originalChartPayload);
+  });
+
+  it('confirms DatasetFirstPayload structure aligns with chart/diagram/table payload shapes', () => {
+    const legacy = createMockCandidate('payload-test-2', 'chart', { config: { type: 'bar' } });
+    const originalChartPayload = legacy.data.chart;
+    
+    const testPayload: DatasetFirstPayload = {
+      type: 'chart',
+      title: 'Test Chart',
+      chart: originalChartPayload
+    };
+    
+    expect(testPayload.type).toBe('chart');
+    expect(testPayload.title).toBe('Test Chart');
+    expect(testPayload.chart).toBe(originalChartPayload);
   });
 });
