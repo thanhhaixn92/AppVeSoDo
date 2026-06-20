@@ -135,3 +135,44 @@ describe('validateRenderableFigurePayload – table', () => {
     expect(result.valid).toBe(true);
   });
 });
+
+/** CONT-3: Edge-case and error boundary tests */
+describe('validateRenderableFigurePayload – boundaries', () => {
+  it('rejects unknown figure type', () => {
+    const r = validateRenderableFigurePayload(createFigure('flowchart', {}));
+    expect(r.valid).toBe(false);
+  });
+  it('rejects null figure', () => {
+    expect(validateRenderableFigurePayload(null as any).valid).toBe(false);
+  });
+  it('rejects line chart with only one data point', () => {
+    const r = validateRenderableFigurePayload(createFigure('chart', { chart: { config: { type: 'line' }, data: [{ label: 'A', value: 1 }] } }));
+    expect(r.valid).toBe(false);
+  });
+  it('accepts bar chart with only one data point', () => {
+    const r = validateRenderableFigurePayload(createFigure('chart', { chart: { config: { type: 'bar' }, data: [{ label: 'A', value: 1 }] } }));
+    expect(r.valid).toBe(true);
+  });
+  it('rejects diagram with zero-dimension node', () => {
+    const r = validateRenderableFigurePayload(createFigure('diagram', { diagram: { nodes: [{ id: 'n1', label: 'A', x: 0, y: 0, w: 0, h: 10 }], connections: [] } }));
+    expect(r.valid).toBe(false);
+  });
+  it('rejects diagram with duplicate connection', () => {
+    const nodes = [{ id: 'n1', label: 'A', x: 0, y: 0, w: 10, h: 10 }, { id: 'n2', label: 'B', x: 20, y: 0, w: 10, h: 10 }];
+    const conns = [{ fromId: 'n1', toId: 'n2' }, { fromId: 'n1', toId: 'n2' }];
+    const r = validateRenderableFigurePayload(createFigure('diagram', { diagram: { nodes, connections: conns } }));
+    expect(r.valid).toBe(false);
+  });
+  it('rejects chart data point with empty label', () => {
+    const r = validateRenderableFigurePayload(createFigure('chart', { chart: { config: { type: 'bar' }, data: [{ label: '', value: 10 }] } }));
+    expect(r.valid).toBe(false);
+  });
+  it('rejects chart data point with null value', () => {
+    const r = validateRenderableFigurePayload(createFigure('chart', { chart: { config: { type: 'pie' }, data: [{ label: 'A', value: null }] } }));
+    expect(r.valid).toBe(false);
+  });
+  it('rejects table column with empty header', () => {
+    const r = validateRenderableFigurePayload(createFigure('table', { table: { columns: [{ key: 'a', header: '' }], rows: [{ a: 1 }] } }));
+    expect(r.valid).toBe(false);
+  });
+});

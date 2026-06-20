@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { selectDatasetFirstGroups, splitAndSortRecommendations } from '../src/analysis/datasetCandidateSelectors';
+import { selectDatasetFirstGroups, splitAndSortRecommendations, mergeGroupDataPayload } from '../src/analysis/datasetCandidateSelectors';
 import { VisualCandidate } from '../src/types';
-import { FigureRecommendation } from '../src/analysis/datasetModel';
+import { FigureRecommendation, DatasetCandidate } from '../src/analysis/datasetModel';
 
 describe('datasetCandidateSelectors', () => {
   const mockCandidate1: VisualCandidate = {
@@ -83,7 +83,7 @@ describe('datasetCandidateSelectors', () => {
   it('preserves mapping from recommendation back to original VisualCandidate', () => {
     const result = selectDatasetFirstGroups([mockCandidate1]);
     const recId = result.groups[0].recommendations[0].id;
-    
+
     expect(result.legacyCandidateByRecommendationId[recId]).toBe(mockCandidate1);
   });
 
@@ -103,13 +103,281 @@ describe('datasetCandidateSelectors', () => {
 
   it('preserves candidate warnings/status without changing policy behavior', () => {
     const result = selectDatasetFirstGroups([mockCandidate2, mockCandidate3]);
-    
+
     const rec2 = result.groups.find(g => g.datasetCandidate.id === 'dataset-group-groupA')?.recommendations[0];
     expect(rec2?.uiStatus).toBe('needs_review');
     expect(rec2?.warnings).toEqual(['Low confidence']);
 
     const rec3 = result.groups.find(g => g.datasetCandidate.id === 'dataset-single-c3')?.recommendations[0];
     expect(rec3?.status).toBe('previewing');
+  });
+
+  it('merges missing payload from later candidate when first lacks chart data', () => {
+    const chart = { config: { type: 'bar' as const, title: 'A', xAxisLabel: '', yAxisLabel: '', showGrid: true, isDoubleColumn: false, caption: '' }, data: [{ label: 'X', value: 10 }] };
+    const firstMissing: VisualCandidate = {
+      id: 'merge-a',
+      sourceGroupId: 'mergeGroup',
+      sourceText: 'Data',
+      visualType: 'bar_chart',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      title: 'First',
+      rationale: '',
+      extractedItems: [],
+      // No chart payload in data
+      data: { type: 'chart', title: 'First' },
+      uiStatus: 'ready'
+    };
+    const secondWithChart: VisualCandidate = {
+      id: 'merge-b',
+      sourceGroupId: 'mergeGroup',
+      sourceText: 'Data',
+      visualType: 'bar_chart',
+      confidence: 0.8,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.8,
+      title: 'Second',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: 'Second', chart },
+      uiStatus: 'ready'
+    };
+
+    const result = selectDatasetFirstGroups([firstMissing, secondWithChart]);
+    const group = result.groups.find(g => g.datasetCandidate.id === 'dataset-group-mergeGroup');
+    expect(group).toBeDefined();
+    // After merge, the group's datasetCandidate should have the chart payload from secondWithChart
+    expect(group?.datasetCandidate.data.chart).toBe(chart);
+    // Both recommendations are present
+    expect(group?.recommendations.length).toBe(2);
+    // Both original candidates are preserved in the mapping
+    expect(result.legacyCandidateByRecommendationId['rec-merge-a']).toBe(firstMissing);
+    expect(result.legacyCandidateByRecommendationId['rec-merge-b']).toBe(secondWithChart);
+  });
+
+  it('does not overwrite existing payload from first candidate with later one', () => {
+    const chartA = { config: { type: 'bar' as const, title: 'A', xAxisLabel: '', yAxisLabel: '', showGrid: true, isDoubleColumn: false, caption: '' }, data: [{ label: 'X', value: 1 }] };
+    const chartB = { config: { type: 'line' as const, title: 'B', xAxisLabel: '', yAxisLabel: '', showGrid: false, isDoubleColumn: false, caption: '' }, data: [{ label: 'Y', value: 2 }] };
+    const firstWithChart: VisualCandidate = {
+      id: 'overwrite-a',
+      sourceGroupId: 'overwriteGroup',
+      sourceText: 'Data',
+      visualType: 'bar_chart',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      title: 'First',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: 'First', chart: chartA },
+      uiStatus: 'ready'
+    };
+    const secondWithChart: VisualCandidate = {
+      id: 'overwrite-b',
+      sourceGroupId: 'overwriteGroup',
+      sourceText: 'Data',
+      visualType: 'bar_chart',
+      confidence: 0.8,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.8,
+      title: 'Second',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: 'Second', chart: chartB },
+      uiStatus: 'ready'
+    };
+
+    const result = selectDatasetFirstGroups([firstWithChart, secondWithChart]);
+    const group = result.groups.find(g => g.datasetCandidate.id === 'dataset-group-overwriteGroup');
+    // Should preserve first candidate's chart, not overwrite with second
+    expect(group?.datasetCandidate.data.chart).toBe(chartA);
+  });
+
+  it('merges extractedItems from later candidate when first has empty extractedItems', () => {
+    const items: unknown[] = [{ label: 'X', value: 10 }];
+    const firstEmpty: VisualCandidate = {
+      id: 'items-a',
+      sourceGroupId: 'itemsGroup',
+      sourceText: 'Data',
+      visualType: 'bar_chart',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      title: 'First',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: 'First' },
+      uiStatus: 'ready'
+    };
+    const secondWithItems: VisualCandidate = {
+      id: 'items-b',
+      sourceGroupId: 'itemsGroup',
+      sourceText: 'Data',
+      visualType: 'bar_chart',
+      confidence: 0.8,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.8,
+      title: 'Second',
+      rationale: '',
+      extractedItems: items,
+      data: { type: 'chart', title: 'Second' },
+      uiStatus: 'ready'
+    };
+
+    const result = selectDatasetFirstGroups([firstEmpty, secondWithItems]);
+    const group = result.groups.find(g => g.datasetCandidate.id === 'dataset-group-itemsGroup');
+    expect(group?.datasetCandidate.extractedItems).toBe(items);
+  });
+
+  it('does not mutate input candidates during group payload merge', () => {
+    const chart = { config: { type: 'bar' as const, title: 'A', xAxisLabel: '', yAxisLabel: '', showGrid: true, isDoubleColumn: false, caption: '' }, data: [{ label: 'X', value: 1 }] };
+    const firstMissing: VisualCandidate = {
+      id: 'nomut-a',
+      sourceGroupId: 'nomutGroup',
+      sourceText: 'Data',
+      visualType: 'bar_chart',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      title: 'First',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: 'First' },
+      uiStatus: 'ready'
+    };
+    const secondWithChart: VisualCandidate = {
+      id: 'nomut-b',
+      sourceGroupId: 'nomutGroup',
+      sourceText: 'Data',
+      visualType: 'bar_chart',
+      confidence: 0.8,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.8,
+      title: 'Second',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: 'Second', chart },
+      uiStatus: 'ready'
+    };
+
+    const firstCopy = JSON.parse(JSON.stringify(firstMissing));
+    const secondCopy = JSON.parse(JSON.stringify(secondWithChart));
+    selectDatasetFirstGroups([firstMissing, secondWithChart]);
+    expect(firstMissing).toEqual(firstCopy);
+    expect(secondWithChart).toEqual(secondCopy);
+  });
+});
+
+
+  it('merges missing datasetSelection metadata from later candidates without mutating', () => {
+    const firstMissingMetadata: VisualCandidate = {
+      id: 'meta-1',
+      sourceGroupId: 'metaGroup',
+      sourceText: '',
+      sourceExcerpt: '',
+      visualType: 'bar_chart',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      title: 'First',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: 'First' },
+      uiStatus: 'ready'
+    };
+    const secondWithMetadata: VisualCandidate = {
+      id: 'meta-2',
+      sourceGroupId: 'metaGroup',
+      sourceText: 'Full source text',
+      sourceExcerpt: 'Excerpt text',
+      visualType: 'bar_chart',
+      confidence: 0.8,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.8,
+      title: 'Second',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: 'Second' },
+      uiStatus: 'ready'
+    };
+
+    const firstCopy = JSON.parse(JSON.stringify(firstMissingMetadata));
+    const secondCopy = JSON.parse(JSON.stringify(secondWithMetadata));
+
+    const result = selectDatasetFirstGroups([firstMissingMetadata, secondWithMetadata]);
+    const group = result.groups.find(g => g.datasetCandidate.id === 'dataset-group-metaGroup');
+
+    expect(group?.datasetCandidate.datasetSelection.sourceText).toBe('Full source text');
+    expect(group?.datasetCandidate.datasetSelection.sourceExcerpt).toBe('Excerpt text');
+
+    // Non-mutation check
+    expect(firstMissingMetadata).toEqual(firstCopy);
+    expect(secondWithMetadata).toEqual(secondCopy);
+  });
+describe('mergeGroupDataPayload', () => {
+  it('fills missing payload from additional candidates', () => {
+    const chart = { config: { type: 'bar' as const, title: 'A', xAxisLabel: '', yAxisLabel: '', showGrid: true, isDoubleColumn: false, caption: '' }, data: [] };
+    const base: DatasetCandidate = {
+      id: 'base',
+      datasetSelection: { sourceText: 'x' },
+      extractedItems: [],
+      data: {}
+    };
+    const additional: VisualCandidate = {
+      id: 'extra',
+      sourceText: 'x',
+      visualType: 'bar_chart',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      title: '',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: '', chart },
+      uiStatus: 'ready'
+    };
+    const merged = mergeGroupDataPayload(base, [additional]);
+    expect(merged.data.chart).toBe(chart);
+    expect(merged.id).toBe('base');
+  });
+
+  it('does not overwrite existing payload', () => {
+    const existingChart = { config: { type: 'bar' as const, title: 'existing', xAxisLabel: '', yAxisLabel: '', showGrid: true, isDoubleColumn: false, caption: '' }, data: [] };
+    const newChart = { config: { type: 'line' as const, title: 'new', xAxisLabel: '', yAxisLabel: '', showGrid: false, isDoubleColumn: false, caption: '' }, data: [] };
+    const base: DatasetCandidate = {
+      id: 'base',
+      datasetSelection: { sourceText: 'x' },
+      extractedItems: [],
+      data: { chart: existingChart }
+    };
+    const additional: VisualCandidate = {
+      id: 'extra',
+      sourceText: 'x',
+      visualType: 'bar_chart',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      title: '',
+      rationale: '',
+      extractedItems: [],
+      data: { type: 'chart', title: '', chart: newChart },
+      uiStatus: 'ready'
+    };
+    const merged = mergeGroupDataPayload(base, [additional]);
+    expect(merged.data.chart).toBe(existingChart);
   });
 });
 
@@ -196,5 +464,36 @@ describe('splitAndSortRecommendations', () => {
 
     expect(usableRecs).toEqual([mockRecUsable]);
     expect(invalidRecs).toEqual([]);
+  });
+
+  it('invalid-payload candidates remain blocked after selector grouping', () => {
+    const invalidPayloadCand: VisualCandidate = {
+      id: 'inv-payload',
+      sourceGroupId: 'grp1',
+      sourceText: '',
+      visualType: 'bar_chart',
+      title: 'Bad',
+      rationale: '',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      extractedItems: [],
+      // Missing chart payload → should be needs_mapping
+      uiStatus: 'needs_mapping',
+      data: { type: 'chart', title: 'Bad' }
+    };
+
+    const result = selectDatasetFirstGroups([invalidPayloadCand]);
+    const rec = result.groups[0].recommendations[0];
+    const legacyCand = result.legacyCandidateByRecommendationId[rec.id];
+    const { usableRecs, invalidRecs } = splitAndSortRecommendations(
+      result.groups[0].recommendations,
+      result.legacyCandidateByRecommendationId
+    );
+
+    expect(legacyCand).toBe(invalidPayloadCand);
+    expect(usableRecs).toHaveLength(0);
+    expect(invalidRecs).toHaveLength(1);
   });
 });

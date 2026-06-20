@@ -5,6 +5,11 @@ import { createRoot, Root } from 'react-dom/client';
 import { describe, expect, it, vi } from 'vitest';
 import { useCandidateWorkflow } from '../src/hooks/useCandidateWorkflow';
 import { RankedVisualCandidate } from '../src/types';
+import { adaptCandidateToRenderable } from '../src/analysis/candidateToRenderableAdapter';
+import { buildPreviewFigureFromCandidate, buildSavedFigureFromCandidate } from '../src/lib/workflowUtils';
+import { selectDatasetFirstGroups, splitAndSortRecommendations } from '../src/analysis/datasetCandidateSelectors';
+import { VisualCandidate } from '../src/types';
+
 
 type CandidateWorkflow = ReturnType<typeof useCandidateWorkflow>;
 
@@ -166,4 +171,108 @@ describe('candidate workflow canvas orchestration', () => {
       hook.unmount();
     },
   );
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// CONT-2: Dataset-first bridge integrity tests (pure unit-level)
+// Prove that a FigureRecommendation alone cannot build a renderable figure.
+// The legacy candidate map is the required bridge for apply/preview actions.
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('dataset-first bridge integrity', () => {
+  const chartPayload = {
+    config: { type: 'bar' as const, title: 'Bridge Chart', xAxisLabel: '', yAxisLabel: '', showGrid: true, isDoubleColumn: false, caption: '' },
+    data: [{ label: 'X', value: 42 }],
+  };
+
+  const legacyCandidate: VisualCandidate = {
+    id: 'bridge-cand',
+    sourceGroupId: 'grpBridge',
+    sourceText: 'Bridge data',
+    visualType: 'bar_chart',
+    confidence: 0.9,
+    detectionMethod: 'rule',
+    source: 'rule',
+    finalConfidence: 0.9,
+    title: 'Bridge candidate',
+    rationale: '',
+    extractedItems: [],
+    uiStatus: 'ready',
+    data: { type: 'chart', title: 'Bridge candidate', chart: chartPayload },
+  };
+
+  it('a FigureRecommendation object alone cannot build a PreviewFigure — must resolve via legacy map', () => {
+    const result = selectDatasetFirstGroups([legacyCandidate]);
+    const rec = result.groups[0].recommendations[0];
+    expect(() => adaptCandidateToRenderable(rec as any)).toThrow();
+  });
+
+  it('a FigureRecommendation object alone cannot build a SavedFigure via buildSavedFigureFromCandidate', () => {
+    const result = selectDatasetFirstGroups([legacyCandidate]);
+    const rec = result.groups[0].recommendations[0];
+    expect(() => buildSavedFigureFromCandidate(rec as any, 'apa')).toThrow();
+  });
+
+  it('resolving the recommendation through the legacy map succeeds and produces the correct preview', () => {
+    const result = selectDatasetFirstGroups([legacyCandidate]);
+    const rec = result.groups[0].recommendations[0];
+    const resolved = result.legacyCandidateByRecommendationId[rec.id];
+    expect(resolved).toBe(legacyCandidate);
+    const preview = buildPreviewFigureFromCandidate(resolved);
+    expect(preview.isPreview).toBe(true);
+    expect(preview.type).toBe('chart');
+    expect(preview.chart).toEqual(chartPayload);
+  });
+
+  it('invalid-payload candidate routed through dataset-first grouping remains non-actionable', () => {
+    const invalidCand: VisualCandidate = {
+      id: 'invalid-bridge',
+      sourceGroupId: 'grpBridge',
+      sourceText: 'Bad data',
+      visualType: 'bar_chart',
+      confidence: 0.9,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.9,
+      title: 'Invalid',
+      rationale: '',
+      extractedItems: [],
+      uiStatus: 'needs_mapping',
+      data: { type: 'chart', title: 'Invalid' },
+    };
+    const result = selectDatasetFirstGroups([invalidCand]);
+    const { usableRecs, invalidRecs } = splitAndSortRecommendations(
+      result.groups[0].recommendations,
+      result.legacyCandidateByRecommendationId
+    );
+    expect(usableRecs).toHaveLength(0);
+    expect(invalidRecs).toHaveLength(1);
+    const resolved = result.legacyCandidateByRecommendationId[result.groups[0].recommendations[0].id];
+    expect(() => adaptCandidateToRenderable(resolved)).toThrow();
+  });
+
+  it('multi-candidate group resolves each recommendation independently to its own legacy candidate', () => {
+    const secondCandidate: VisualCandidate = {
+      id: 'bridge-cand-2',
+      sourceGroupId: 'grpBridge',
+      sourceText: 'Bridge data',
+      visualType: 'line_chart',
+      confidence: 0.8,
+      detectionMethod: 'rule',
+      source: 'rule',
+      finalConfidence: 0.8,
+      title: 'Bridge candidate 2',
+      rationale: '',
+      extractedItems: [],
+      uiStatus: 'ready',
+      data: { type: 'chart', title: 'Bridge candidate 2', chart: chartPayload },
+    };
+    const result = selectDatasetFirstGroups([legacyCandidate, secondCandidate]);
+    const group = result.groups[0];
+    expect(group.recommendations).toHaveLength(2);
+    const rec1 = group.recommendations[0];
+    const rec2 = group.recommendations[1];
+    expect(result.legacyCandidateByRecommendationId[rec1.id]).toBe(legacyCandidate);
+    expect(result.legacyCandidateByRecommendationId[rec2.id]).toBe(secondCandidate);
+  });
 });

@@ -86,6 +86,47 @@ describe('candidateToRenderableAdapter', () => {
     );
   });
 
+  it('rejects a candidate with unsupported data type with a clear error', () => {
+    const source = candidate('chart', chart);
+    source.data = { type: 'flowchart', chart } as any;
+    expect(() => adaptCandidateToRenderable(source)).toThrow(
+      'Unsupported candidate data type: "flowchart"'
+    );
+  });
+
+  it('rejects a FigureRecommendation-shaped object without VisualCandidate data field', () => {
+    // FigureRecommendation does not have data.type — adapter must not accept it
+    const figureRec = {
+      id: 'rec-1',
+      datasetCandidateId: 'd1',
+      title: 'test',
+      confidence: 0.9,
+      rationale: 'test',
+      source: 'rule',
+      detectionMethod: 'rule',
+      finalConfidence: 0.9,
+      typeOptions: [],
+      uiStatus: 'ready',
+      // No data field
+    } as any;
+    expect(() => adaptCandidateToRenderable(figureRec)).toThrow();
+  });
+
+  it('candidate with optional provenance absent does not throw', () => {
+    const source = candidate('chart', chart);
+    delete source.provenance;
+    const result = adaptCandidateToRenderable(source);
+    expect(result.provenance).toBeUndefined();
+    expect(result.chart).toEqual(chart);
+  });
+
+  it('deep clone isolation: mutating result does not affect original candidate', () => {
+    const source = candidate('chart', chart);
+    const result = adaptCandidateToRenderable(source);
+    (result.chart as any).config.title = 'MUTATED';
+    expect(source.data.chart.config.title).toBe(chart.config.title);
+  });
+
   it('keeps preview and saved figure compatibility', () => {
     const source = candidate('diagram', diagram);
     const preview = buildPreviewFigureFromCandidate(source);

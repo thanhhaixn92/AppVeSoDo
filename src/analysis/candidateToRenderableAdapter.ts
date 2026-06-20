@@ -2,17 +2,27 @@ import {
   RankedVisualCandidate,
   RenderableFigurePayload,
   VisualCandidate,
-  DatasetProvenance,
-  FigureRecommendation,
 } from '../types';
 import { isCandidateUsable } from './candidateModel';
 
+const SUPPORTED_CANDIDATE_TYPES = ['chart', 'table', 'diagram'] as const;
+type SupportedCandidateType = typeof SUPPORTED_CANDIDATE_TYPES[number];
+
+function isSupportedType(type: unknown): type is SupportedCandidateType {
+  return SUPPORTED_CANDIDATE_TYPES.includes(type as SupportedCandidateType);
+}
+
+/**
+ * Safe deep-clone using JSON round-trip. Guards against undefined values by
+ * returning undefined when input is undefined rather than throwing.
+ */
 function deepClone<T>(value: T): T {
+  if (value === undefined || value === null) return value;
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
 export function adaptCandidateToRenderable(
-  candidate: VisualCandidate | RankedVisualCandidate | (DatasetProvenance & FigureRecommendation & { id?: string; uid?: string }),
+  candidate: VisualCandidate | RankedVisualCandidate,
 ): RenderableFigurePayload {
   if (!isCandidateUsable(candidate)) {
     throw new Error('Candidate is not renderable.');
@@ -21,7 +31,12 @@ export function adaptCandidateToRenderable(
     throw new Error('Candidate data is missing.');
   }
 
-  const sourceCandidateUid = (candidate as RankedVisualCandidate).uid || (candidate as VisualCandidate).id || (candidate as any).id || 'unknown';
+  const type = candidate.data.type;
+  if (!isSupportedType(type)) {
+    throw new Error(`Unsupported candidate data type: "${type}". Only chart, table, and diagram are supported.`);
+  }
+
+  const sourceCandidateUid = (candidate as RankedVisualCandidate).uid || (candidate as VisualCandidate).id || 'unknown';
   const payload: RenderableFigurePayload = {
     sourceCandidateUid,
     title: candidate.title,
