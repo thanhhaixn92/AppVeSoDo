@@ -436,3 +436,14 @@ root_causes:
       - "Require PROMPT_ID in every prompt header (see prompt-registry.yml required_prompt_header)"
       - "Require prompt traceability block (echoing PROMPT_ID) in all operational reports"
       - "Stop if inbound prompt lacks PROMPT_ID; flag before proceeding"
+
+  - id: "RC-AI-STUDIO-LINE-ENDING-CHURN"
+    category: "qa_process"
+    pattern: "editor/import/sync environment normalizes line endings."
+    symptoms:
+      - "large insertion/deletion counts across unchanged files"
+      - "commit appears to change governance or protected files incorrectly"
+    prevention:
+      - "do not rewrite unrelated files"
+      - "do not classify protected-scope files as logical changes until --ignore-cr-at-eol check is done"
+      - "keep artifact checks after report generation and before ZIP creation"

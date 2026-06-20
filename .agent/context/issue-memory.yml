@@ -168,3 +168,15 @@ issues:
       - "Require PROMPT_ID in every operational prompt header"
       - "Require prompt traceability block (echoing PROMPT_ID) in every operational report"
       - "Add PROMPT_ID echo as a stop condition in qa-cycle.md"
+
+  - id: "ISSUE-2026-06-AI-STUDIO-LINE-ENDING-CHURN"
+    date: "2026-06-20"
+    status: "mitigated / accepted with note"
+    area: "sync / review / line endings"
+    summary: >
+      AI Studio line-ending-only churn / CRLF-LF diff noise during M1.5 Slice 003 post-sync review.
+      Latest commit appeared to include governance files and src/types.ts even though logical change was only datasetModel.ts.
+    detected_by: "compare normal diff with `git diff --ignore-cr-at-eol`"
+    impact: "caused false-positive protected-scope concern and delayed closure"
+    prevention:
+      - "future AI Studio/post-sync verification must include CR-at-EOL normalization checks before classifying files as logical changes"
