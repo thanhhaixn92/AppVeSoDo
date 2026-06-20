@@ -5,18 +5,11 @@ import {
   TableModel,
   FigureKind,
   CandidateStatus,
-  CandidateSource
+  CandidateSource,
+  DatasetSourceMetadata
 } from '../types';
 
-export interface DatasetSelection {
-  sourceRange?: { start: number; end: number };
-  sourceSectionId?: string;
-  sourceSectionHeading?: string;
-  sourceExcerpt?: string;
-  sourceLineRange?: { startLine: number; endLine: number };
-  sourceText?: string;
-  sourceGroupId?: string;
-}
+export type DatasetSelection = DatasetSourceMetadata;
 
 export interface DatasetCandidate {
   id: string;
