@@ -435,6 +435,19 @@ export interface VisualIntent {
 export type CandidateStatus = 'ready' | 'needs_review' | 'needs_mapping' | 'not_ready';
 
 // --- DATASET-FIRST MIGRATION ALIASES (M1.5) ---
+
+export type DatasetFigureKind = 'diagram' | 'chart' | 'table';
+
+export interface DatasetFirstPayload {
+  type: DatasetFigureKind;
+  title: string;
+  chart?: ChartModel;
+  diagram?: DiagramModel;
+  table?: TableModel;
+}
+
+export type DatasetSourceMetadata = Partial<DatasetProvenance>;
+
 export interface DatasetProvenance {
   sourceRange?: { start: number; end: number };
   sourceSectionId?: string;
@@ -779,7 +792,7 @@ export type FigureKind = 'diagram' | 'chart' | 'table';
 
 export type CandidateSource = 'rule' | 'ai' | 'merged';
 
-export type VisualIntentType = 
+export type VisualIntentType =
   | "compare"
   | "trend"
   | "process"

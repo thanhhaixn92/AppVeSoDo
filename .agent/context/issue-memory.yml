@@ -150,3 +150,21 @@ issues:
     discovery_date: "2026-06-16"
     description: "Vite build does not perform TypeScript checking. Omission of explicit linting allowed TypeScript errors in DatasetFirstCandidateList to reach main."
     resolution: "Added npm run lint / tsc --noEmit to the required QA gate and fixed VisualCandidate typing to preserve RankedVisualCandidate fields."
+
+  - id: "ISSUE-2026-06-PROMPT-TRACEABILITY-PARTIAL"
+    date: "2026-06-20"
+    status: "recorded"
+    area: "project governance / prompt memory"
+    summary: >
+      Operational prompts sent to agents (Codex, Antigravity, AI Studio, ChatGPT Project)
+      lacked a dedicated registry. PROMPT_ID tracking was PARTIAL and report-to-prompt
+      linkage was absent. Future agents could lose supersession and coordination context.
+    lesson: >
+      Every operational prompt needs a PROMPT_ID and every report responding to that prompt
+      must echo the PROMPT_ID. Without this, agents cannot trace prompt lineage, supersessions,
+      or the relationship between a report and the prompt it addresses.
+    prevention:
+      - "Create and maintain .agent/context/prompt-registry.yml"
+      - "Require PROMPT_ID in every operational prompt header"
+      - "Require prompt traceability block (echoing PROMPT_ID) in every operational report"
+      - "Add PROMPT_ID echo as a stop condition in qa-cycle.md"

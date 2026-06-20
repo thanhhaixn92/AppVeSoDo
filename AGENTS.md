@@ -118,7 +118,7 @@ Do not touch these unless explicitly scoped:
 - **Main Branch Sync Policy**: GitHub `main` is strictly synced and owned by Google AI Studio.
 - **No Direct Merges**: Antigravity agents must not merge PRs or push directly to `main`.
 - **Branch Purpose**: Antigravity branches and PRs (e.g. PR #4) are for local implementation, backup, and code review reference only.
-- **Safe Workflow**: 
+- **Safe Workflow**:
   1. Antigravity implements and tests locally.
   2. Antigravity creates a ZIP payload.
   3. AI Studio imports the ZIP, performs smoke tests, and syncs to `main`.
@@ -138,6 +138,11 @@ Use `.agent/core/universal-report-format.md`.
 
 ## Git policy
 Use `.agent/rules/git-policy.md`.
+
+## Prompt Registry
+When `.agent/context/prompt-registry.yml` exists, agents must read it for operational prompt identity,
+revision history, supersession, and report traceability rules before acting on any scoped prompt.
+Every report responding to a scoped operational prompt must echo the `PROMPT_ID` it is acting on.
 
 ## Stop condition
 Stop and report instead of guessing when:

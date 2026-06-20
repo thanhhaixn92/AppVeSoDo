@@ -1,0 +1,140 @@
+schema_version: "1.0.0"
+created_at: "2026-06-20"
+purpose: >
+  Canonical registry for all operational prompts sent to AI agents (Codex, Antigravity, AI Studio, ChatGPT Project)
+  working on SO DO APP / Academic Figure Creator.
+  Provides PROMPT_ID traceability, revision history, supersession links, report linkage,
+  allowed/forbidden scope, and outcome recording so future agents can trace the full
+  coordination lineage without losing context.
+
+prompt_id_standard:
+  format: "<TASK_ID>-<ACTOR>-<PURPOSE>-<SEQ>-v<REV>"
+  notes:
+    - "TASK_ID: matches the task being addressed (e.g. R7-M1B-2, GOV-PROMPT-MEMORY, M1C, M1D-LITE)"
+    - "ACTOR: short token identifying the target agent (e.g. CODEX, AGV, AISTUDIO, CHATGPT)"
+    - "PURPOSE: short purpose code (e.g. AUDIT_PLAN, VERIFY, IMPL, REVIEW, SMOKE, CORRECTIVE)"
+    - "SEQ: zero-padded 3-digit sequence within the same task/actor/purpose (001, 002, ...)"
+    - "REV: revision number starting from 1 (v1, v2, ...); increment when prompt is superseded"
+  examples:
+    - "R7-M1B-2-CODEX-AUDIT_PLAN-001-v1"
+    - "R7-M1B-2-AGV-VERIFY-001-v1"
+    - "R7-M1B-2-AGV-IMPL-001-v1"
+    - "R7-M1B-2-CODEX-REVIEW-001-v1"
+    - "R7-M1B-2-AISTUDIO-SMOKE-001-v1"
+    - "GOV-PROMPT-MEMORY-AGV-IMPL-001-v1"
+
+allowed_target_agents:
+  - CODEX
+  - ANTIGRAVITY
+  - AI_STUDIO
+  - CHATGPT_PROJECT
+  note: "PROMPT_ID may use short actor tokens (AGV, AISTUDIO) but TARGET_AGENT field must use canonical values above."
+
+allowed_purpose_values:
+  - AUDIT_PLAN
+  - VERIFY
+  - IMPL
+  - REVIEW
+  - SMOKE
+  - CORRECTIVE
+  - CHECKPOINT
+  - SYNC
+
+required_prompt_header:
+  description: "Every operational prompt sent to an agent must include these fields at the top."
+  fields:
+    - PROMPT_ID
+    - TARGET_AGENT
+    - TASK_ID
+    - MODE
+    - STATUS
+    - SUPERSEDES
+    - RELATED_REPORT
+    - SOURCE_ASSUMPTION
+    - CREATED_AT
+    - SCOPE_TYPE
+    - ALLOWED_FILES
+    - FORBIDDEN_AREAS
+
+report_echo_requirement:
+  rule: >
+    Every operational report that responds to a scoped prompt must echo the PROMPT_ID in its
+    header block. A report that does not echo PROMPT_ID is incomplete and must be corrected
+    before being used for implementation, review, AI Studio handoff, or task closure.
+  required_report_block: |
+    prompt:
+      prompt_id: <PROMPT_ID>
+      target_agent: <TARGET_AGENT>
+      task_id: <TASK_ID>
+      mode: <MODE>
+      status: <STATUS>
+      supersedes: <SUPERSEDES>
+      related_report: <RELATED_REPORT>
+      source_assumption: <SOURCE_ASSUMPTION>
+
+    traceability:
+      prompt_registry_entry: <YES/NO>
+      source_basis: <e.g. "cloned latest main aede9bf">
+      latest_commit_or_source_hash: <hash>
+      changed_files: []
+      protected_scope_check: <CLEAN / violations listed>
+
+revision_and_supersession:
+  convention: >
+    When a prompt is revised (corrected scope, updated forbids, error in prior version),
+    create a new entry with incremented version (e.g. v2) and set the old entry status to SUPERSEDED.
+    The new entry must reference supersedes: <old-prompt-id>.
+  example:
+    old: "R7-M1B-2-AGV-IMPL-001-v1  → status: SUPERSEDED"
+    new: "R7-M1B-2-AGV-IMPL-001-v2  → supersedes: R7-M1B-2-AGV-IMPL-001-v1"
+
+lessons_home:
+  primary: ".agent/context/issue-memory.yml"
+  root_causes: ".agent/context/root-cause-library.yml"
+  note: "Record prompt/report traceability lessons in issue-memory and recurring root causes in root-cause-library."
+
+legacy_prompts:
+  note: >
+    Prompts written before this registry was created (milestone prompts under .agent/prompts/milestones/)
+    are considered legacy. They do not need to be immediately backfilled.
+    New prompts from this point forward should follow this registry.
+  backfill_policy: "Gradual; prioritize active/in-flight tasks."
+
+prompts:
+  - prompt_id: "GOV-PROMPT-MEMORY-AGV-IMPL-001-v1"
+    target_agent: ANTIGRAVITY
+    task_id: GOV-PROMPT-MEMORY
+    mode: ANTIGRAVITY_IMPLEMENT_ONLY
+    purpose: IMPL
+    status: COMPLETED
+    supersedes: NONE
+    related_report: "CODEX GOVERNANCE MEMORY AUDIT REPORT"
+    source_assumption: "Use latest repo source already provided for the new Antigravity task; do not over-focus on branch naming."
+    created_at: "2026-06-20"
+    scope_type: governance-only
+    allowed_files:
+      - "AGENTS.md"
+      - ".agent/core/universal-report-format.md"
+      - ".agent/workflows/qa-cycle.md"
+      - ".agent/context/prompt-registry.yml"
+      - ".agent/context/issue-memory.yml"
+      - ".agent/context/root-cause-library.yml"
+    forbidden_areas:
+      - "src/**"
+      - "tests/**"
+      - "package.json / package-lock.json"
+      - "server.ts / server boundary"
+      - "export code / export DOM contract / data-export-target"
+      - "renderer DOM wrappers / FigureRenderer.tsx"
+      - "Firebase / Auth / persistence"
+      - "real AI / Gemini runtime"
+      - "candidate policy behavior"
+      - "stable document workflow"
+      - "raw document preservation boundary"
+    outcome: >
+      Created .agent/context/prompt-registry.yml with schema, prompt ID standard, required header,
+      report echo requirement, and initial registry entry.
+      Updated universal-report-format.md to include prompt traceability block and echo rule.
+      Updated qa-cycle.md to include prompt/report traceability in inputs, report generation, and stop conditions.
+      Added AGENTS.md pointer to prompt-registry.yml.
+      Recorded lesson in issue-memory.yml and root-cause-library.yml.
